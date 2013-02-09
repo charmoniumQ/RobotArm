@@ -1,6 +1,6 @@
-from serial.tools import list_ports
-import serial
 import time
+import serial
+from serial.tools import list_ports
 import pyfirmata
 
 simulation = False
@@ -8,7 +8,7 @@ simulation = False
 
 def get_port(delay, retries=0):
     for x in range(retries + 1):
-        for port in list_ports.comports():
+        for port in list(list_ports.comports())[::-1]:
             #list_ports.comports() => [('name', 'description', 'ID')...]
             print ('%s: trying to open' % port[1])
             try:
@@ -25,23 +25,31 @@ def get_port(delay, retries=0):
 
 class Communication (object):
     def __init__(self):
-        if not simulation:
-            usb_port = get_port(.1, 10)
+        self.simulation = simulation
+        if not self.simulation:
+            usb_port = get_port(.2, 5)
             self.uno = pyfirmata.Arduino(usb_port)
-
-#    def _send(self, data):
-#        self.uno.send_sysex(pyfirmata.STRING_DATA, data)
+        else:
+            print ('***Using virtual serial port***')
 
     def move(self, pin, angle):
-#        if not simulation:
-#            self._send([servo, angle])
-#        else:
-#            print ('%i: %i' % (servo, angle))
-        #print ('pin %i to %i degrees' % (pin, angle))
-        self.uno.digital[pin].write(angle)
+        if not self.simulation:
+            self.uno.digital[pin].write(angle)
+        else:
+            pass
 
     def servo_config(self, pin, min_pulse=544, max_pulse=2400, angle=0):
-        self.uno.servo_config(pin, min_pulse, max_pulse, angle)
+        print ('servo_config(%i, %i, %i, %i' % (pin, min_pulse, max_pulse, angle))
+        if not self.simulation:
+            self.uno.servo_config(pin, min_pulse, max_pulse, angle)
+        else:
+            pass
 
     def close(self):
-        del self.uno
+        if not self.simulation:
+            try:
+                del self.uno
+            except AttributeError:
+                pass # already closed
+        else:
+            pass
