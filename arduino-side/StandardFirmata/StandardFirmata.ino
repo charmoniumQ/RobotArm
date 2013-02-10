@@ -29,6 +29,10 @@
  * TODO: use Program Control to load stored profiles from EEPROM
  */
 
+//\\//\\     <--- I am putting this symbol next to all of the lines I change
+
+#include "Stepper.h" //\\//\\
+
 #include <Servo.h>
 #include <Wire.h>
 #include <Firmata.h>
@@ -328,6 +332,8 @@ void sysexCallback(byte command, byte argc, byte *argv)
   byte slaveRegister;
   byte data;
   unsigned int delayTime; 
+  
+  doStepperCommand(command, argc, argv);//\\//\\
   
   switch(command) {
   case I2C_REQUEST:
