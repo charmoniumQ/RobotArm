@@ -2,7 +2,7 @@ import multiprocessing
 #from math import sqrt, tanh, cosh, degrees
 import communication
 import Queue
-import multiprocess
+import multiprocessing
 
 comm = communication.Communication()
 
@@ -42,17 +42,17 @@ class Servo (object):
     angle = property(read, set)
 
 
-class Robot (multiprocess.Process):
+class Robot (multiprocessing.Process):
     def __init__(self, servos, speed):
         self._servos = servos
         self.speed = speed
-        self.queue = Queue.Queue()
-        self.quiting = False
-        print ('robot setup!')
+        self.queue = multiprocessing.Queue()
+        self.quiting = multiprocessing.Event()
+        super(Robot, self).__init__()
     
     def run(self):
         print ('robot looping...')
-        while not self.quiting:
+        while not self.quiting.is_set():
             while not self.queue.empty():
                 data = self.queue.pop()
                 function = getattr(Servo, data[0])
@@ -88,10 +88,10 @@ class Robot (multiprocess.Process):
         self.queue.append(('set', servo, angle))
 
     def __str__(self):
-        return '\n'.join((name + ': ' +  str(servo)) for (name, servo) in self.servos.items())
+        return '\n'.join((name + ': ' +  str(servo)) for (name, servo) in self._servos.items())
         
     def quit(self):
-        self.quiting = True
+        self.quiting.set()
         comm.close()
         pass
 
