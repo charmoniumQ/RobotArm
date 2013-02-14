@@ -42,6 +42,11 @@ class Servo (object):
     angle = property(read, set)
 
 
+class Stepper (object):
+    def __init__(self, interface, steps_per_rev, pin1, pin2):
+        comm.stepper_config(interface, steps_per_rev, pin1, pin2)
+
+
 class Robot (multiprocessing.Process):
     def __init__(self, servos, speed):
         self._servos = servos

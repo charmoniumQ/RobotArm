@@ -5,6 +5,7 @@ import pyfirmata
 
 SERIAL_SIMULATION = True
 CONSOLE_OUTPUT = False
+
 def print_function(*args):
     if CONSOLE_OUTPUT:
         print args
@@ -47,6 +48,9 @@ class Communication (object):
             self.uno.servo_config(pin, min_pulse, max_pulse, angle)
         else:
             print_function('setup: %d' % pin)
+
+    def stepper_config(self, interface, steps_per_rev, pin1, pin2):
+        self.uno.send_sysex(interface, )
 
     def close(self):
         if not SERIAL_SIMULATION:
