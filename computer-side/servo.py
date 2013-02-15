@@ -44,8 +44,17 @@ class Servo (object):
 
 class Stepper (object):
     def __init__(self, interface, steps_per_rev, pin1, pin2):
-        comm.stepper_config(interface, steps_per_rev, pin1, pin2)
+        self.id = comm.stepper_config(interface, steps_per_rev, pin1, pin2)
 
+    def step(self, steps, speed):
+        direction = 0
+        if steps >= 0:
+            direction = communication.STEPPER_CW
+            steps = +steps
+        else:
+            direction = communication.STEPPER_CCW
+            steps = -steps
+        comm.stepper_step(self.id, direction, steps, speed)
 
 class Robot (multiprocessing.Process):
     def __init__(self, servos, speed):

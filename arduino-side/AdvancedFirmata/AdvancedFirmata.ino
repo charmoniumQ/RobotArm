@@ -451,6 +451,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
     break;
 
   case STEPPER:
+    Serial.println("STEPPER_COMMAND"); //\\//
     byte stepCommand, deviceNum, directionPin, stepPin, stepDirection, interface;
     byte motorPin3, motorPin4;
     unsigned int stepsPerRev;
@@ -463,6 +464,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
     deviceNum = argv[1];
 
     if (stepCommand == STEPPER_CONFIG) {
+      Serial.println("STEPPER_CONFIG"); //\\//
       numSteppers++; // assumes steppers are added in order 0 -> 5
       interface = argv[2];
       stepsPerRev = (argv[3] + (argv[4] << 7));
@@ -474,7 +476,9 @@ void sysexCallback(byte command, byte argc, byte *argv)
 
       if (interface == FirmataStepper::DRIVER || interface == FirmataStepper::TWO_WIRE) {
         stepper[deviceNum] = new FirmataStepper(interface, stepsPerRev, directionPin, stepPin);
+        Serial.println("STEPPER_TWO_WIRE"); //\\//
       } else if (interface == FirmataStepper::FOUR_WIRE) {
+        Serial.println("STEPPER_FOUR_WIRE"); //\\//
         motorPin3 = argv[7];
         motorPin4 = argv[8];          
         setPinModeCallback(motorPin3, OUTPUT);
@@ -483,6 +487,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
       }
     }
     else if (stepCommand == STEPPER_STEP) {
+      Serial.println("STEPPER_STEP"); //\\//
       stepDirection = argv[2];
       numSteps = (long)argv[3] | ((long)argv[4] << 7) | ((long)argv[5] << 14);
       stepSpeed = (argv[6] + (argv[7] << 7));
