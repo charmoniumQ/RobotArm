@@ -19,21 +19,25 @@ class Controller (multiprocessing.Process):
                 raise BaseException('No joystick detected. Please reconect it')
             self.controls.init()
         else:
-            print ('***Using a non-existant joystick***')
+            pass
+            #print ('***Using a non-existant joystick***')
         self.mode = self.test
         self.events = multiprocessing.Queue()
         self.quiting = multiprocessing.Event()
         self.i = 0
+        print ('manual_control setup!')
         super(Controller, self).__init__()
+        self.start()
 
     def run(self):
-        print ('manual control looping...')
+        print ('manual_control looping...')
         while not self.quiting.is_set():
             while not self.events.empty():
                 function, args = self.events.get()
                 function = getattr(self, function)
                 function(*args)
             self.mode()
+        self._quit()
 
     def get_axis(self, axis):
         if not JOYSTICK_SIMULATION:
@@ -91,5 +95,7 @@ class Controller (multiprocessing.Process):
 
     def quit(self):
         self.quiting.set()
-        del self.controls  # FIXME: do this better
+
+    def _quit(self):
         self.bot.quit()
+        self.events.close()

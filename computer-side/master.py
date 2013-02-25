@@ -23,7 +23,7 @@ class App(object):
             pygame.JOYAXISMOTION])
         pygame.register_quit(self.quit)
         self.quitting = multiprocessing.Event()
-        print ('pygame setup!')
+        print ('pygame: setup!')
 
         ### virtual obot setup ###
         self.bot = servo.Robot(dict(
@@ -33,17 +33,11 @@ class App(object):
                 wrist=servo.Servo(4, 600, 2400, 20, 3.5, 1),
                 claw=servo.Servo(3, 600, 2400, 40, 0.0, 1),
             ), .1)
-        self.bot.start()
-        print ('robot setup!')
 
         ### protocols setup ###
         self.manual = manual_control.Controller(self.bot)
-        self.manual.start()
-        print ('manual controls setup!')
 
-        #self.automatic = automatic_control.Controller(self.bot)
-        #self.automatic.start()
-        #print ('automatic controls setup!')
+        self.automatic = automatic_control.Controller(self.bot)
 
         ### keys setup ###
         self.keymap = {
@@ -58,22 +52,18 @@ class App(object):
             'escape': (pygame.quit, ()),
         }
 
-        ### stuff ###
-        print ('master looping...')
+         ### stuff ###
+        print ('master: looping...')
         self.i = 0
-        self.loop()
+        super(App, self).__init__()
+        self.run()
 
-    def loop(self):
-        print ('hi')
+    def run(self):
         while not self.quitting.is_set():
             self.test()
             for current_event in event.get():
                 self.event(current_event)
-            try:
-                event.pump()
-            except pygame.error:
-                pass #  quit and return
-        self.quit()
+        self._quit()
 
     def event(self, event):
         if event.type == pygame.QUIT:
@@ -84,7 +74,7 @@ class App(object):
             self.unknown(event)
 
     def unknown(self, event):
-        print ('Unkown event: ' + str(event))
+        print ('master: Unkown event: ' + str(event))
 
     def keys(self, event):
         try:
@@ -107,19 +97,16 @@ class App(object):
 
     def quit(self):
         if not self.quitting.is_set():
-            print ('quitting')
             self.quitting.set()
-            try: self.manual.quit()
-            except: pass
-            try: self.automatic.quit()
-            except: pass
-            try: self.bot.quit()
-            except: pass
-            try: pygame.quit()
-            except: pass
+            print ('master: quitting')
         else:
-            pass
-            #print ('already quit')
+            print ('master: already quit')
+
+    def _quit(self):
+            self.manual.quit()
+            self.automatic.quit()
+            self.bot.quit()
+            pygame.quit()
 
 
 if __name__ == '__main__':
@@ -127,7 +114,6 @@ if __name__ == '__main__':
     try:
         app = App()
     except:
+        app.quit()
+        print ('error')
         raise
-    try: input("Press Enter to continue... ")
-    except SyntaxError: pass
-    app.quit()

@@ -7,25 +7,38 @@ import collections
 class Controller (multiprocessing.Process):
     def __init__(self, robot):
         self.bot = robot
-        self.input = Multiprocessing.Queue()
+        self.input = multiprocessing.Queue()
         self.index = 0
         self.commands = [ ( 'blank', () ),
+                          ( 'test', () ), 
+                          ( 'test', () ), 
+                          ( 'test', () ), 
+                          ( 'test', () ), 
                           ( 'test', () ), ] #  preprogrammed routine
         self.quitting = multiprocessing.Event()
+        self.begin()
         self.i = 0
+        print ('automatic_control: setup!')
         super(Controller, self).__init__()
+        self.start()
 
     def run(self):
-        print ('automatic control looping...')
+        print ('automatic_control: looping...')
         while not self.quitting.is_set():
             while not self.input.empty():
                 self.commands.insert(idx + 1, self.input.get())
                 #  put the realtime input ahead of all of the preprogrammed routine
-            if index != len(commands):
-                index += 1
-                func, args = commands[index]
-                func = getattr(self, func)
-                func(*args)
+            if not (self.is_paused() or self.is_delayed()):
+                self.index += 1
+                func, args = None, None
+                try:
+                    func, args = self.commands[self.index]
+                except IndexError:
+                    pass
+                else:
+                    func = getattr(self, func)
+                    func(*args)
+        self._quit()
 
     def blank():
         #  this function is needed at self.commands[0]
@@ -45,29 +58,38 @@ class Controller (multiprocessing.Process):
         else:
             return
 
-    #def change(self, change_type):  # FIXME
-    #    self.input.put(change_type)
-    #
-    #def start(self):
-    #    self.pause = False
-    #
-    #def stop(self):
-    #    self.pause = True
-    #
-    ##def last(self):  # FIXME: do more than just last function
-    ##    self.commands.queue.appendleft(self.last)
-    #
-    ##def next(self):
-    ##    self.commands.queue.popleft()
-    #
-    #def delay(self, duration):  # FIXME
-    #    self.timedone = get current time + duration
-    #    if get current time > self.timedone:
-    #        self.pause = True
-    #    else:
-    #        self.pause = False
-    #    queue.put_left(self.delay,)
+    def is_delayed(self):
+        return self.delay_time > time.time()
 
-    def quit(self):  # FIXME
+    def delay(self, period):
+        self.delay_time = time.time() + period
+
+    def pause(self, status):
+        print ('automatic_control: pause' + str(status))
+        self.pause = status
+
+    def is_paused(self):
+        return self.pause
+
+    def begin(self):
+        self.pause(False)
+        self.delay(0)
+
+    def stop(self):
+        self.pause(True)
+
+    def skip(self, delta_index):
+        self.index += delat_index
+    
+    def next(self, delta_index=1):
+        self.skip(delta_index)
+
+    def last(self, delta_index=-1):
+        self.skeip(delta_index)
+
+    def quit(self):
         self.quitting.set()
+
+    def _quit(self):
         self.bot.quit()
+        self.input.close()

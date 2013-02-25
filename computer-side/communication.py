@@ -3,8 +3,8 @@ import serial
 from serial.tools import list_ports
 import pyfirmata
 
-SERIAL_SIMULATION = False
-CONSOLE_OUTPUT = True
+SERIAL_SIMULATION = True
+CONSOLE_OUTPUT = False
 
 STEPPER_COMMAND = 0x72
 STEPPER_CONFIG = 0
@@ -21,10 +21,10 @@ STEPPER_CW = 1
 
 def print_function(*args):
     if CONSOLE_OUTPUT:
-        print args
+        print 'communication: ' + ' '.join(args)
 
 def as_bytes(val, num_bytes, size=7):
-	return tuple(val / (2**(7*x)) % (2**7) for x in range(num_bytes))
+        return tuple(val / (2**(7*x)) % (2**7) for x in range(num_bytes))
 
 def get_port(delay, retries=0):
     for x in range(retries + 1):
@@ -50,7 +50,7 @@ class Communication (object):
             usb_port = get_port(.2, 5)
             self.uno = pyfirmata.Arduino(usb_port)
         else:
-            print ('***Using virtual serial port***')
+            print_function('***Using virtual serial port***')
         self.steppers = 0
 
     def move(self, pin, angle):
@@ -94,17 +94,15 @@ class Communication (object):
         self.stepper(STEPPER_CONFIG, self.steppers, STEPPER_FOUR_WIRE, steps1, steps2, pin1, pin2, pin3, pin4)
         return self.steppers
 
-    def stepper_step(self, stepper_num, direction, steps, speed):
+    def stepper_step(self, stepper_num, direction, steps, speed, accel=None, decel=None):
         steps1, steps2, steps3 = as_bytes(steps, 3)
         speed1, speed2 = as_bytes(speed, 2)
-        self.stepper(STEPPER_STEP, stepper_num, direction, steps1, steps2, steps3, speed1, speed2)
-
-    def stepper_step(self, stepper_num, direction, steps, speed, accel, decel):
-        steps1, steps2, steps3 = as_bytes(steps, 3)
-        speed1, speed2 = as_bytes(speed, 2)
-        accel1, accel2 = as_bytes(accel, 2)
-        decel1, decel2 = as_bytes(decel, 2)
-        self.stepper(STEPPER_STEP, stepper_num, direction, steps1, steps2, steps3, speed1, speed2, accel1, accel2, decel1, decel2)
+        if accel is None:
+            self.stepper(STEPPER_STEP, stepper_num, direction, steps1, steps2, steps3, speed1, speed2)
+        else:
+            accel1, accel2 = as_bytes(accel, 2)
+            decel1, decel2 = as_bytes(decel, 2),
+            self.stepper(STEPPER_STEP, stepper_num, direction, steps1, steps2, steps3, speed1, speed2, accel1, accel2, decel1, decel2)
 
     def close(self):
         if not SERIAL_SIMULATION:

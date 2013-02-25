@@ -43,8 +43,12 @@ class Servo (object):
 
 
 class Stepper (object):
-    def __init__(self, interface, steps_per_rev, pin1, pin2):
-        self.id = comm.stepper_config(interface, steps_per_rev, pin1, pin2)
+    def __init__(self, interface, steps_per_rev, pin1, pin2, pin3=None, pin4=None):
+        self.id = None
+        if pin3 is None:
+            self.id = comm.stepper_config(interface, steps_per_rev, pin1, pin2)
+        else:
+            self.id = comm.stepper_config4(interface, steps_per_rev, pin1, pin2, pin3, pin4)
 
     def step(self, steps, speed):
         direction = 0
@@ -62,7 +66,9 @@ class Robot (multiprocessing.Process):
         self.speed = speed
         self.queue = multiprocessing.Queue()
         self.quiting = multiprocessing.Event()
+        print ('Robot setup!')
         super(Robot, self).__init__()
+        self.start()
     
     def run(self):
         print ('robot looping...')
@@ -74,6 +80,7 @@ class Robot (multiprocessing.Process):
                 angle = data[2]
                 function(servo, angle)
                 print ('%s: %i' % (servo, angle))
+        self._quit()
 
     #def __getitem__(self, idx):
     #    return self.servos[idx]
@@ -104,10 +111,12 @@ class Robot (multiprocessing.Process):
     def __str__(self):
         return '\n'.join((name + ': ' +  str(servo)) for (name, servo) in self._servos.items())
         
-    def quit(self):
-        self.quiting.set()
+    def _quit(self): # internal use only
         comm.close()
-        pass
+        self.queue.close()
+
+    def quit(self): # external use
+        self.quiting.set()
 
     #def xyz(x, y, z):
     #    def hypot(leg1, leg2):
