@@ -4,7 +4,6 @@ from serial.tools import list_ports
 import pyfirmata
 
 SERIAL_SIMULATION = True
-CONSOLE_OUTPUT = False
 
 STEPPER_COMMAND = 0x72
 STEPPER_CONFIG = 0
@@ -19,10 +18,6 @@ STEPPER_CCW = 0
 STEPPER_CW = 1
 
 
-def print_function(*args):
-    if CONSOLE_OUTPUT:
-        print 'communication: ' + ' '.join(args)
-
 def as_bytes(val, num_bytes, size=7):
         return tuple(val / (2**(7*x)) % (2**7) for x in range(num_bytes))
 
@@ -30,16 +25,16 @@ def get_port(delay, retries=0):
     for x in range(retries + 1):
         for port in list(list_ports.comports())[::-1]:
             #list_ports.comports() => [('name', 'description', 'ID')...]
-            print_function('%s: trying to open' % port[1])
+            #print('%s: trying to open' % port[1])
             try:
                 comm = serial.Serial(port[0])  # if no exception occurs here,
                                                # then we are successful
                 comm.close()
-                if CONSOLE_OUTPUT:
-                    print_function('%s: successfully opened\n' % port[1])
+                #print('%s: successfully opened\n' % port[1])
                 return port[0]
             except serial.SerialException:
-                print_function('%s: failed to open\n' % port[1])
+                pass
+                #print('%s: failed to open\n' % port[1])
             time.sleep(delay)
     raise serial.SerialException('No serial port found')
 
@@ -50,20 +45,23 @@ class Communication (object):
             usb_port = get_port(.2, 5)
             self.uno = pyfirmata.Arduino(usb_port)
         else:
-            print_function('***Using virtual serial port***')
+            pass
+            #print('***Using virtual serial port***')
         self.steppers = 0
 
     def move(self, pin, angle):
         if not SERIAL_SIMULATION:
             self.uno.digital[pin].write(angle)
         else:
-            print_function('move: %d to %d' % (pin, angle))
+            pass
+            #print('move: %d to %d' % (pin, angle))
 
     def servo_config(self, pin, min_pulse=544, max_pulse=2400, angle=0):
         if not SERIAL_SIMULATION:
             self.uno.servo_config(pin, min_pulse, max_pulse, angle)
         else:
-            print_function('setup: %d' % pin)
+            pass
+            #print('setup: %d' % pin)
 
     def stepper(self, *data):
         self.uno.send_sysex(STEPPER_COMMAND, list(data))

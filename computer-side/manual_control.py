@@ -10,8 +10,9 @@ DOWN = 1/1.5
 
 
 class Controller (multiprocessing.Process):
-    def __init__(self, robot, joystick_id=0):
+    def __init__(self, robot, log, joystick_id=0):
         self.bot = robot
+        self.log = log
         if not JOYSTICK_SIMULATION:
             if joystick.get_count():
                 self.controls = joystick.Joystick(joystick_id)
@@ -19,25 +20,32 @@ class Controller (multiprocessing.Process):
                 raise BaseException('No joystick detected. Please reconect it')
             self.controls.init()
         else:
-            pass
-            #print ('***Using a non-existant joystick***')
+            self.log('***Using a non-existant joystick***')
         self.mode = self.test
         self.events = multiprocessing.Queue()
         self.quiting = multiprocessing.Event()
         self.i = 0
-        print ('manual_control setup!')
+        self.delay(0)
+        self.log('setup!')
         super(Controller, self).__init__()
         self.start()
 
     def run(self):
-        print ('manual_control looping...')
+        self.log('looping...')
         while not self.quiting.is_set():
             while not self.events.empty():
                 function, args = self.events.get()
                 function = getattr(self, function)
                 function(*args)
-            self.mode()
+            if not self.is_delayed():
+                self.mode()
         self._quit()
+
+    def is_delayed(self):
+        return self.delay_time > time.time()
+
+    def delay(self, period):
+        self.delay_time = time.time() + period
 
     def get_axis(self, axis):
         if not JOYSTICK_SIMULATION:
@@ -80,11 +88,11 @@ class Controller (multiprocessing.Process):
 
     def test(self):
         if self.i == 0:
-            time.sleep(.2)
             self.i = 1
-        elif self.i < 5:
-            time.sleep(1)
-            print ('manual control: %i' % self.i)
+            self.delay(.4)
+        elif self.i < 10:
+            self.delay(1)
+            self.log('%i' % self.i)
             self.i += 1
         else:
             return

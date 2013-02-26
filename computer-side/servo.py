@@ -1,5 +1,6 @@
 import multiprocessing
 #from math import sqrt, tanh, cosh, degrees
+import time
 import communication
 import Queue
 import multiprocessing
@@ -61,33 +62,52 @@ class Stepper (object):
         comm.stepper_step(self.id, direction, steps, speed)
 
 class Robot (multiprocessing.Process):
-    def __init__(self, servos, speed):
+    def __init__(self, servos, speed, log):
         self._servos = servos
         self.speed = speed
+        self.log = log
+        self.delay(0)
+        self.i = 0
         self.queue = multiprocessing.Queue()
         self.quiting = multiprocessing.Event()
-        print ('Robot setup!')
+        self.log('setup!')
         super(Robot, self).__init__()
         self.start()
     
     def run(self):
-        print ('robot looping...')
+        self.log('looping...')
         while not self.quiting.is_set():
+            if not self.is_delayed():
+                self.test()
             while not self.queue.empty():
                 data = self.queue.pop()
                 function = getattr(Servo, data[0])
                 servo = self._servos[data[1]]
                 angle = data[2]
                 function(servo, angle)
-                print ('%s: %i' % (servo, angle))
+                self.log('%s: %i' % (servo, angle))
         self._quit()
 
-    #def __getitem__(self, idx):
-    #    return self.servos[idx]
+    def is_delayed(self):
+        return self.delay_time > time.time()
+
+    def delay(self, period):
+        self.delay_time = time.time() + period
+
+    def test(self):
+        if self.i == 0:
+            self.i = 1
+            self.delay(.4)
+        elif self.i < 10:
+            self.delay(1)
+            self.log('%i' % self.i)
+            self.i += 1
+        else:
+            return
 
     def get_robot_speed(self):
         return self.speed
-    
+
     def set_robot_speed(self, speed):
         self.speed = speed
         
@@ -137,6 +157,6 @@ class Robot (multiprocessing.Process):
     #    b = degrees(cos_law(B, A, C))
     #    c = degrees(cos_law(C, A, B))
     #
-    #    print ('wast: %i' % theta)
-    #    print ('shoulder: %i' % alpha + a)
-    #    print ('elbow: %i' % b)
+    #    self.log('wast: %i' % theta)
+    #    self.log('shoulder: %i' % alpha + a)
+    #    self.log('elbow: %i' % b)
