@@ -54,14 +54,14 @@ class Communication (object):
             self.uno.digital[pin].write(angle)
         else:
             pass
-            #print('move: %d to %d' % (pin, angle))
+            print('move: %d to %d' % (pin, angle))
 
     def servo_config(self, pin, min_pulse=544, max_pulse=2400, angle=0):
         if not SERIAL_SIMULATION:
             self.uno.servo_config(pin, min_pulse, max_pulse, angle)
         else:
             pass
-            #print('setup: %d' % pin)
+            print('setup: %d' % pin)
 
     def stepper(self, *data):
         self.uno.send_sysex(STEPPER_COMMAND, list(data))

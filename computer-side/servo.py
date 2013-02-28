@@ -80,12 +80,13 @@ class Robot (multiprocessing.Process):
             if not self.is_delayed():
                 self.test()
             while not self.queue.empty():
-                data = self.queue.pop()
-                function = getattr(Servo, data[0])
-                servo = self._servos[data[1]]
-                angle = data[2]
-                function(servo, angle)
-                self.log('%s: %i' % (servo, angle))
+                function, args = self.queue.get()
+                function = getattr(self, function)
+                function(*args)
+                if function.__name__ == 'aug':
+                    self.log('aug %s by %i' % (servo, angle))
+                if function.__name__ == 'set':
+                    self.log('set %s to %i' % (servo, angle))
         self._quit()
 
     def is_delayed(self):
@@ -122,11 +123,20 @@ class Robot (multiprocessing.Process):
     def get_servo_speed(self, servo):
         return self._servos[servo].speed
 
+    def _aug(self, servo, angle):
+        self._servos[servo].aug(angle)
+
+    def _set(self, servo, angle):
+        self._servos[servo].set(angle)
+
     def aug(self, servo, angle):
-        self.queue.append(('aug', servo, angle))
+        self.queue.put(('_aug', (servo, angle)))
 
     def set(self, servo, angle):
-        self.queue.append(('set', servo, angle))
+        self.queue.put(('_set', (servo, angle)))
+
+    def log_pos(self):
+        self.log(str(self))
 
     def __str__(self):
         return '\n'.join((name + ': ' +  str(servo)) for (name, servo) in self._servos.items())

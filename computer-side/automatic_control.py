@@ -12,18 +12,25 @@ class Controller (multiprocessing.Process):
         self.commands = [ ( 'blank', () ),
                           ( 'delay', (.3,) ),
                           ( 'log', ('1',) ),
+                          ( 'aug', ('elbow', 10) ),
                           ( 'delay', (1,) ),
                           ( 'log', ('2',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('3',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('4',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('5',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('6',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('7',) ),
+                          ( 'aug', ('elbow', 10)),
                           ( 'delay', (1,) ),
                           ( 'log', ('8',) ),
                           ( 'delay', (1,) ),
@@ -60,6 +67,12 @@ class Controller (multiprocessing.Process):
                     func(*args)
                 self.executing.release()
         self._quit()
+
+    def aug(self, servo, angle):
+        self.bot.aug(servo, angle)
+
+    def set(self, servo, angle):
+        self.bot.set(servo, angle)
 
     def blank():
         #  this function is needed at self.commands[0]

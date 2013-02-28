@@ -4,7 +4,7 @@ import pygame
 from pygame import event
 from pygame import joystick
 
-JOYSTICK_SIMULATION = True
+JOYSTICK_SIMULATION = False
 UP = 1.5
 DOWN = 1/1.5
 
@@ -16,9 +16,9 @@ class Controller (multiprocessing.Process):
         if not JOYSTICK_SIMULATION:
             if joystick.get_count():
                 self.controls = joystick.Joystick(joystick_id)
+                self.controls.init()
             else:
-                raise BaseException('No joystick detected. Please reconect it')
-            self.controls.init()
+                self.log('No joystick detected. Please reconect it')
         else:
             self.log('***Using a non-existant joystick***')
         self.mode = self.test
@@ -46,33 +46,37 @@ class Controller (multiprocessing.Process):
 
     def delay(self, period):
         self.delay_time = time.time() + period
-
-    def get_axis(self, axis):
-        if not JOYSTICK_SIMULATION:
-            return round(self.controls.get_axis(axis) * (5**self.bot.speed / 50), 1)
-        else:
-            return 0
+    #
+    #def get_axis(self, axis):
+    #    if not JOYSTICK_SIMULATION:
+    #        return round(self.controls.get_axis(axis) * (5**self.bot.speed / 50), 1)
+    #    else:
+    #        return 0
 
     def set_mode_individual(self):
         self.mode = self.individual
 
     def individual(self):
-        self.bot.aug('waist', self.get_axis(0))
-        if self.controls.get_button(0):
-            self.bot.aug('shoulder', self.get_axis(1))
-        if self.controls.get_button(3):
-            self.bot.aug('elbow', self.get_axis(1))
-        if self.controls.get_button(2):
-            self.bot.aug('wrist', self.get_axis(1))
-        self.bot.aug('claw', self.get_axis(3))
-        if self.get_button == 6:
-            self.sensitivity(DOWN)
-        if self.get_button == 7:
-            self.sensitivity(UP)
-        if self.get_button == 5:
-            self.bot.set('claw', 0)
-        if self.get_button == 4:
-            self.bot.set('claw', 180)
+        try:
+            self.bot.aug('waist', self.get_axis(0, 'waist'))
+            if self.controls.get_button(0):
+                self.bot.aug('shoulder', self.get_axis(1, 'shoulder'))
+            if self.controls.get_button(3):
+                self.bot.aug('elbow', self.get_axis(1, 'elbow'))
+            if self.controls.get_button(2):
+                self.bot.aug('wrist', self.get_axis(1, 'wrist'))
+            self.bot.aug('claw', self.get_axis(3, 'claw'))
+            if self.get_button == 6:
+                self.sensitivity(DOWN)
+            if self.get_button == 7:
+                self.sensitivity(UP)
+            if self.get_button == 5:
+                self.bot.set('claw', 0)
+            if self.get_button == 4:
+                self.bot.set('claw', 180)
+        except AttributeError:
+            pass
+            #print ('No Joystick connected')
 
     def set_mode_blank(self):
         self.mode = self.blank
