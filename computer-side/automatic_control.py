@@ -9,38 +9,40 @@ class Controller (multiprocessing.Process):
         self.log = log
         self.input = multiprocessing.Queue()
         self.index = 0
-        self.commands = [ ( 'blank', () ),
-                          ( 'delay', (.3,) ),
-                          ( 'log', ('1',) ),
-                          ( 'aug', ('elbow', 10) ),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('2',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('3',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('4',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('5',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('6',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('7',) ),
-                          ( 'aug', ('elbow', 10)),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('8',) ),
-                          ( 'delay', (1,) ),
-                          ( 'log', ('9',) ),] #  preprogrammed routine
+        #self.commands = [ ( 'blank', () ),
+        #                  ( 'delay', (.3,) ),
+        #                  ( 'log', ('1',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('2',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('3',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('4',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('5',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('6',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('7',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('8',) ),
+        #                  ( 'delay', (1,) ),
+        #                  ( 'log', ('9',) ),] #  preprogrammed routine
+        self.commands = self.gen_routine()
         self.quitting = multiprocessing.Event()
         self.executing = multiprocessing.Lock()
         self.begin()
         self.log('setup!')
         super(Controller, self).__init__()
         self.start()
+
+    def gen_routine(self):
+        routine = []
+        for angle in range(3, 15): # 'elbow', 'waist',  
+            for servo in ['shoulder', 'claw', 'wrist']:
+                routine.append(('set', (servo, angle*10)))
+            routine.append(('delay', (.5,)))
+        return routine
 
     def run(self):
         self.log('looping...')

@@ -83,10 +83,10 @@ class Robot (multiprocessing.Process):
                 function, args = self.queue.get()
                 function = getattr(self, function)
                 function(*args)
-                if function.__name__ == 'aug':
-                    self.log('aug %s by %i' % (servo, angle))
-                if function.__name__ == 'set':
-                    self.log('set %s to %i' % (servo, angle))
+                if function.__name__ == '_aug':
+                    self.log('aug %s by %i' % (args))
+                if function.__name__ == '_set':
+                    self.log('set %s to %i' % (args))
         self._quit()
 
     def is_delayed(self):

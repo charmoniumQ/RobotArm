@@ -1,5 +1,6 @@
 import time
 import serial
+import glob
 from serial.tools import list_ports
 import pyfirmata
 
@@ -42,8 +43,10 @@ def get_port(delay, retries=0):
 class Communication (object):
     def __init__(self):
         if not SERIAL_SIMULATION:
-            usb_port = get_port(.2, 5)
+            usb_port = glob.glob('/dev/ttyUSB*')[0]
+            #usb_port = get_port(.2, 5)
             self.uno = pyfirmata.Arduino(usb_port)
+            
         else:
             pass
             #print('***Using virtual serial port***')

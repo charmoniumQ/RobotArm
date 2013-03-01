@@ -32,6 +32,7 @@ class Controller (multiprocessing.Process):
 
     def run(self):
         self.log('looping...')
+        self.log('John Chan is cool, but not as cool as Sam Grayson.')
         while not self.quiting.is_set():
             while not self.events.empty():
                 function, args = self.events.get()
@@ -77,6 +78,22 @@ class Controller (multiprocessing.Process):
         except AttributeError:
             pass
             #print ('No Joystick connected')
+
+    def set_mode_keys(self):
+        self.mode = self.keys
+
+    def process_keys(self, event):
+        pass
+
+    #def keys(self):
+    #    while not self.events.empty():
+    #        {'F1': lambda self: self.servo = 'waist',
+    #         'F2': lambda self: self.servo = 'shoulder',
+    #         'F3': lambda self: self.servo = 'elbow',
+    #         'F4': lambda self: self.servo = 'wrist',
+    #         'F5': lambda self: self.servo = 'claw',}[key.name(event.key)](self)
+            
+            
 
     def set_mode_blank(self):
         self.mode = self.blank
