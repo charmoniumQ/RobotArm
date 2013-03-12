@@ -1,6 +1,8 @@
 import glob
 from serial.tools import list_ports
 import pyfirmata
+from config import logs
+from config import robot_setup
 
 STEPPER_COMMAND = 0x72
 STEPPER_CONFIG = 0
@@ -13,6 +15,7 @@ STEPPER_DECEL = 2
 STEPPER_RUN = 3
 STEPPER_CCW = 0
 STEPPER_CW = 1
+SERVO_MICROS = 0x86
 
 
 def as_bytes(val, num_bytes=2, size=7):
@@ -33,9 +36,12 @@ def single_port(name):
 
 
 class Port():  # TODO: test this
-    def __init__(self, log, port_name):
+    def __init__(self, log):
         self.log = log
-        port = port_name.split(':')
+        self.verbosity = logs.core['comm']
+        port = robot_setup.port_name.split(':')
+        if self.verbosity['__init__']:
+            self.log(port)
         if port[0] == 'A':
             self.simulation = False
             self.try_uno_ports(autodetect())
@@ -48,39 +54,56 @@ class Port():  # TODO: test this
         elif port[0] == 'F':
             self.simulation = True
         else:
-            raise ValueError()
+            raise ValueError('%s is not a valid option' % port[0])
 
     def try_uno_ports(self, potential_ports):
         for port in potential_ports:
             try:
-                self.uno = pyfirmata.Arduino(port)
-            except:
+                if self.verbosity['try_uno_ports']:
+                    self.log('Trying: %s' % port)
+                self.uno = pyfirmata.Arduino(port,
+                    baudrate=robot_setup.baud_rate,
+                    name=robot_setup.object_name)
+            except Exception as e:
+                if self.verbosity['try_uno_ports']:
+                    self.log('Failed: %s' % port)
+                    self.log(str(e))
                 pass
             else:
+                if self.verbosity['successful_port']:
+                    self.log('Using port: %s' % port)
                 return
+        raise RuntimeError('No port found')
 
     def servo_config(self, pin, min_pulse, max_pulse):
-#        self.log(('Servo is being setup\n' +
-#                 'On pin: %d\n' +
-#                 'With pulse from %d to %d') % (pin, min_pulse, max_pulse))
+        if self.verbosity['servo_config']:
+            self.log(('Servo is being setup\n' +
+                     'On pin: %d\n' +
+                     'With pulse from %d to %d') % (pin, min_pulse, max_pulse))
         if self.simulation:
             return
         self.uno.servo_config(pin, min_pulse, max_pulse)
 
     def servo_move(self, pin, angle):
-#        self.log('Servo on pin %d is moving to %d' % (pin, angle))
+        if self.verbosity['servo_move']:
+            self.log('Servo on pin %d is moving to %d' % (pin, angle))
         if self.simulation:
             return
         self.uno.digital[pin].write(angle)
+
+    def servo_micros(self, pin, micros):
+        micros1, micros2 = as_bytes(micros)
+        self.uno.send_sysex(SERVO_MICROS, [pin, micros1, micros2])
 
     def _stepper(self, *data):
         self.uno.send_sysex(STEPPER_COMMAND, list(data))
 
     def stepper_config_D(self, steps_per_rev, pin1, pin2):
-        self.log(('2 wire stepper being set up\n' +
-                 'Steps per revolution: %d\n' +
-                 'pins: %d, %d') %
-                 (steps_per_rev, pin1, pin2))
+        if self.verbosity['stepper_config']:
+            self.log(('2 wire stepper being set up\n' +
+                     'Steps per revolution: %d\n' +
+                     'pins: %d, %d') %
+                     (steps_per_rev, pin1, pin2))
         if self.simulation:
             return
         self.steppers += 1
@@ -92,7 +115,8 @@ class Port():  # TODO: test this
         return self.setppers
 
     def stepper_config_2(self, steps_per_rev, pin1, pin2):
-        self.log('2 wire stepper being set up\n' +
+        if self.verbosity['stepper_config']:
+            self.log('2 wire stepper being set up\n' +
                  'Steps per revolution: %d\n' +
                  'pins: %d, %d' %
                  (steps_per_rev, pin1, pin2))
@@ -107,7 +131,8 @@ class Port():  # TODO: test this
         return self.steppers
 
     def stepper_config_4(self, steps_per_rev, pin1, pin2, pin3, pin4):
-        self.log(('4 wire stepper being setup\n' +
+        if self.verbosity['stepper_config']:
+            self.log(('4 wire stepper being setup\n' +
                  'Steps per revolution: %d\n' +
                  'pins: %d, %d, %d, %d') %
                  (steps_per_rev, pin1, pin2, pin3, pin4))
@@ -125,8 +150,9 @@ class Port():  # TODO: test this
 
     def stepper_step(self, stepper_num, direction, steps, speed,
                      accel=None, decel=None):
-        self.log(('Stepper %d is stepping in %d direction for %d steps at %d' +
-                 'speed with an optional accel: %d and decel:%d') %
+        if self.verbosity['stepper_step']:
+            self.log(('Stepper %d is stepping in %d direction for %dsteps' +
+                      'at %d speed with an optional accel: %d and decel:%d') %
                  (stepper_num, direction, steps, speed, accel, decel))
         if self.simulation:
             return

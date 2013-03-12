@@ -51,6 +51,10 @@
 #define STEPPER 0x72  // move this to Firmata.h
 #define STEPPER_CONFIG 0
 #define STEPPER_STEP 1
+<<<<<<< HEAD
+=======
+#define SERVO_MICROS 0x86 // arbitary
+>>>>>>> master
 
 /*==============================================================================
  * GLOBAL VARIABLES
@@ -506,7 +510,18 @@ void sysexCallback(byte command, byte argc, byte *argv)
     }     
 
     break;
+<<<<<<< HEAD
 
+=======
+  case SERVO_MICROS: {
+    int pin = argv[0];
+    int microsec = (argv[1] + (argv[2] << 7));
+    servos[PIN_TO_SERVO(pin)].writeMicroseconds(microsec);
+    pinState[pin] = servos[PIN_TO_SERVO(pin)].read();
+    break;
+  }
+  
+>>>>>>> master
   case SAMPLING_INTERVAL:
     if (argc > 1) {
       samplingInterval = argv[0] + (argv[1] << 7);
@@ -721,4 +736,8 @@ void loop()
       }
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> master

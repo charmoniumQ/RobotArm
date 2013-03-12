@@ -1,28 +1,31 @@
 import multiprocessing
 import time
 import sys
+from config import logs
 
 
 class Process (multiprocessing.Process):
     def __init__(self, log_function):
         multiprocessing.Process.__init__(self)
-
         self.log = log_function
         self.input = multiprocessing.Queue()
         self.quitting = multiprocessing.Event()
         self.delay(0)
         self.paused(False)
-
-        self.log('Setup succesful!')
+        if logs.framework['process']['__init__']:
+            self.log('Setup succesful')
 
     def run(self):
-        self.log('Looping...')
+        if logs.framework['process']['run']:
+            self.log('Begining to loop')
         self.loop()
         self._quit()
 
     def loop(self):
-        while not self.quitting.is_set():
+        while not self.is_quitting():
             self._loop()
+            if logs.framework['process']['loop']:
+                self.log('Finished loop')
 
     def _loop(self):
         self.process_input()
@@ -44,14 +47,17 @@ class Process (multiprocessing.Process):
         pass
 
     def do_action(self, action):
-        #self.log('Doing: ' + action)
+        if logs.framework['process']['do_action']:
+            self.log('Doing: ' + action)
         try:
             self._do_action(action)
         except:
-            self.log('Could not execute: ' + action)
-            info = sys.exc_info()[:-1]  # last msg ussually not useful
+            if logs.framework['process']['error']:
+                self.log('Could not execute: ' + action)
+            info = sys.exc_info()[:-1]  # last msg usually not useful
             for msg in info:
-                self.log(str(msg))
+                if logs.framework['process']['error']:
+                    self.log(str(msg))
 
     def _do_action(self, action):
         exec action in locals()
@@ -59,6 +65,8 @@ class Process (multiprocessing.Process):
     #  TODO: figure out property business
     #@property
     def idle(self):
+        if logs.framework['process']['idle'] and self.input.empty():
+            self.log('Idle')
         return self.input.empty()
 
     #@property
@@ -71,15 +79,22 @@ class Process (multiprocessing.Process):
 
     #@property
     def paused(self, status):
-        self.log('paused? ' + str(status))
-        self.paused = status
+        if logs.framework['process']['paused']:
+            self.log('paused? ' + str(status))
+        self.paused1 = status
 
     #@paused.setter
     def is_paused(self):
-        return self.paused
+        return self.paused1
 
     def action_input(self, action):
-        #self.log('Will do: ' + action)
+        if logs.framework['process']['action_input']:
+            self.log('Will do: ' + action)
+        if logs.framework['process']['idle'] and self.idle():
+            self.log('Not idle')
+        self._action_input(action)
+
+    def _action_input(self, action):
         self.input.put(action)
 
     #@property
@@ -89,13 +104,18 @@ class Process (multiprocessing.Process):
     #@is_quitting.setter
     def quit(self):
         if not self.quitting.is_set():
-            self.log('Quitting...')
+            if logs.framework['process']['quit']:
+                self.log('Quitting...')
             self.quitting.set()
         else:
-            self.log('Already quit')
+            if logs.framework['process']['double_quit']:
+                self.log('Already quit')
 
     def _quit(self):
-        self.input.close()
+        try:
+            self.input.close()
+        except:
+            pass  # already destructed
 
     def __del__(self):  # TODO: is del'ing necessary?
         try:
