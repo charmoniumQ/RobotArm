@@ -2,4 +2,4 @@
 # whatever its name is. Please forgive the heresy.
 import sys
 import os
-sys.path.insert(os.path.abspath('..'))
+sys.path.append(os.path.abspath('..'))

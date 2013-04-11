@@ -4,8 +4,9 @@ from config import logs
 
 
 class ExecutorProcess (process.Process):
-    def __init__(self, log_function, routine=None):
-        process.Process.__init__(self, log_function)
+    def __init__(self, log_function, routine=None, call_super=True):
+        if call_super:  # helps handle diamond inheritance
+            process.Process.__init__(self, log_function)
         if routine is None:
             if logs.framework['executor']['__init__']:
                 self.log('Blank routine')

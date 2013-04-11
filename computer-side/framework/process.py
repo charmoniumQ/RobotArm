@@ -1,73 +1,105 @@
 import multiprocessing
+#import Queue
 import time
 import sys
 from config import logs
 
 
 class Process (multiprocessing.Process):
-    def __init__(self, log_function):
+    def __init__(self, log_function, parallel=False):
+        #TODO: modular
         multiprocessing.Process.__init__(self)
         self.log = log_function
-        self.input = multiprocessing.Queue()
+        self.parallel = parallel
+        self.actions_q = multiprocessing.Queue()
+        self.objects_q = multiprocessing.Queue()
         self.quitting = multiprocessing.Event()
         self.delay(0)
-        self.paused(False)
+        self.pause(False)
         if logs.framework['process']['__init__']:
             self.log('Setup succesful')
 
+    def start(self):
+        if not self.parallel:
+            raise RuntimeError('This is thread is not set to run' +
+                               'in self.parellel.')
+        if self.is_alive():
+            if logs.framework['process']['double_start']:
+                self.log('Already started')
+            return
+        else:
+            if logs.framework['process']['start']:
+                self.log('Begining to loop')
+            multiprocessing.Process.start(self)
+
     def run(self):
-        if logs.framework['process']['run']:
-            self.log('Begining to loop')
+        #TODO: boilerplate
+        self.setup()
         self.loop()
-        self._quit()
+        self.end()
+
+    def setup(self):
+        self.loop_count = 0
 
     def loop(self):
         while not self.is_quitting():
             self._loop()
+            self.loop_count += 1
             if logs.framework['process']['loop']:
-                self.log('Finished loop')
+                self.log('Finished loop %d' % self.loop_count)
 
     def _loop(self):
         self.process_input()
         self.mode()
 
     def process_input(self):
-        while not self.input.empty():
-            self._process_input()
+        while not self.objects_q.empty():
+            self._make_object()
+        while not self.actions_q.empty():
+            self._do_action()
 
-    def _process_input(self):
-        action = self.input.get()
-        self.do_action(action)
+    def _do_action(self):
+        action = self.actions_q.get()
+        if logs.framework['process']['actions']:
+            self.log('Doing: %s' % action)
+        try:
+            self._actually_do_action(action)
+        except:
+            self.error(action, sys.exc_info())
+
+    def _actually_do_action(self, action):
+        exec action in locals()
+
+    def _make_object(self):
+        name, obj = self.actions_q.get()
+        if logs.framework['process']['objects']:
+            self.log('Making: {0} = {1!s}'.format(name, obj))
+        self._actually_make_object(name, obj)
+
+    def _actually_make_object(self, name, obj):
+        setattr(self, name, obj)
+
+    def error(self, action, exc_info):
+        if logs.framework['process']['error']:
+            self.log('Could not execute: ' + action)
+            self.log('Error type: %s' % exc_info[0])
+            self.log('Error value: %s' % exc_info[1])
 
     def mode(self):
         if not (self.is_paused() or self.is_delayed()):
             self._mode()
+        else:
+            self.log('delayed')
 
     def _mode(self):
         pass
 
-    def do_action(self, action):
-        if logs.framework['process']['do_action']:
-            self.log('Doing: ' + action)
-        try:
-            self._do_action(action)
-        except:
-            if logs.framework['process']['error']:
-                self.log('Could not execute: ' + action)
-            info = sys.exc_info()[:-1]  # last msg usually not useful
-            for msg in info:
-                if logs.framework['process']['error']:
-                    self.log(str(msg))
-
-    def _do_action(self, action):
-        exec action in locals()
-
     #  TODO: figure out property business
     #@property
     def idle(self):
-        if logs.framework['process']['idle'] and self.input.empty():
+        if logs.framework['process']['idle'] and self.actions_q.empty():
             self.log('Idle')
-        return self.input.empty()
+        return self.actions_q.empty()
 
     #@property
     def is_delayed(self):
@@ -78,24 +110,33 @@ class Process (multiprocessing.Process):
         self.delay_time_millis = time.time() + period
 
     #@property
-    def paused(self, status):
-        if logs.framework['process']['paused']:
+    def pause(self, status=None):
+        if status == None:
+            return self.pause(not self.is_paused())
+        if logs.framework['process']['pause']:
             self.log('paused? ' + str(status))
-        self.paused1 = status
+        self.paused = status
 
-    #@paused.setter
+    #@pause.setter
     def is_paused(self):
-        return self.paused1
+        return self.paused
 
-    def action_input(self, action):
-        if logs.framework['process']['action_input']:
-            self.log('Will do: ' + action)
+    def do_action(self, action):
+        if logs.framework['process']['do_action']:
+            self.log('Will do: %s' % action)
         if logs.framework['process']['idle'] and self.idle():
             self.log('Not idle')
-        self._action_input(action)
+        if self.parallel:
+            self.actions_q.put(action)
+        else:
+            self._actually_do_action(action)
 
-    def _action_input(self, action):
-        self.input.put(action)
+    def make_object(self, name, obj):
+        if logs.framework['process']['make_object']:
+            self.log('Will make: %s with name: %s' % (str(obj), name))
+        if logs.framework['process']['idle'] and self.idle():
+            self.log('Not idle')
+        self.objects_q.put((name, obj))
 
     #@property
     def is_quitting(self):
@@ -112,10 +153,13 @@ class Process (multiprocessing.Process):
                 self.log('Already quit')
 
     def _quit(self):
-        try:
-            self.input.close()
-        except:
-            pass  # already destructed
+        try: self.actions_q.close()
+        except: pass  # already destructed
+        try: self.objects_q.close()
+        except: pass
+
+    def end(self):
+        self._quit()
 
     def __del__(self):  # TODO: is del'ing necessary?
         try:

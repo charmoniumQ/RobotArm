@@ -2,19 +2,20 @@ from __future__ import print_function
 import time
 from core import robot
 
-s = robot.Robot('F', print, [('left', 1, 10, 100, 0),
-                       ('right', 2, 10, 100, 0),
-                       ('front', 3, 200, 1000, 50), ])
+s = robot.Robot( [('left', 1, (600, 2400), 10),
+                   ('right', 2, (600, 2400), 50),
+                   ('front', 3, (600, 2400), 100), ],
+                print)
 s.start()
-s.action_input('print(str(self))')
+s.do_action('print(str(self))')
 s.indirect_move('left', 60)
-s.action_input('print(str(self))')
+s.do_action('print(str(self))')
 time.sleep(2)
 s.indirect_move('right', 60)
-s.action_input('print(str(self))')
+s.do_action('print(str(self))')
 time.sleep(2)
 s.indirect_move('front', 60)
-s.action_input('print(str(self))')
+s.do_action('print(str(self))')
 while not s.idle():
     pass
 s.quit()

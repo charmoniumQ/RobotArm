@@ -35,12 +35,11 @@ def single_port(name):
     return [name]
 
 
-class Port():  # TODO: test this
-    def __init__(self, log):
+class Port(object):  # TODO: test this
+    def __init__(self, port_name, log):
         self.log = log
-        self.verbosity = logs.core['comm']
-        port = robot_setup.port_name.split(':')
-        if self.verbosity['__init__']:
+        port = port_name.split(':')
+        if logs.core['comm']['__init__']:
             self.log(port)
         if port[0] == 'A':
             self.simulation = False
@@ -59,24 +58,24 @@ class Port():  # TODO: test this
     def try_uno_ports(self, potential_ports):
         for port in potential_ports:
             try:
-                if self.verbosity['try_uno_ports']:
+                if logs.core['comm']['try_uno_ports']:
                     self.log('Trying: %s' % port)
                 self.uno = pyfirmata.Arduino(port,
                     baudrate=robot_setup.baud_rate,
                     name=robot_setup.object_name)
             except Exception as e:
-                if self.verbosity['try_uno_ports']:
+                if logs.core['comm']['try_uno_ports']:
                     self.log('Failed: %s' % port)
                     self.log(str(e))
                 pass
             else:
-                if self.verbosity['successful_port']:
+                if logs.core['comm']['successful_port']:
                     self.log('Using port: %s' % port)
                 return
         raise RuntimeError('No port found')
 
     def servo_config(self, pin, min_pulse, max_pulse):
-        if self.verbosity['servo_config']:
+        if logs.core['comm']['servo_config']:
             self.log(('Servo is being setup\n' +
                      'On pin: %d\n' +
                      'With pulse from %d to %d') % (pin, min_pulse, max_pulse))
@@ -85,7 +84,7 @@ class Port():  # TODO: test this
         self.uno.servo_config(pin, min_pulse, max_pulse)
 
     def servo_move(self, pin, angle):
-        if self.verbosity['servo_move']:
+        if logs.core['comm']['servo_move']:
             self.log('Servo on pin %d is moving to %d' % (pin, angle))
         if self.simulation:
             return
@@ -99,7 +98,7 @@ class Port():  # TODO: test this
         self.uno.send_sysex(STEPPER_COMMAND, list(data))
 
     def stepper_config_D(self, steps_per_rev, pin1, pin2):
-        if self.verbosity['stepper_config']:
+        if logs.core['comm']['stepper_config']:
             self.log(('2 wire stepper being set up\n' +
                      'Steps per revolution: %d\n' +
                      'pins: %d, %d') %
@@ -115,7 +114,7 @@ class Port():  # TODO: test this
         return self.setppers
 
     def stepper_config_2(self, steps_per_rev, pin1, pin2):
-        if self.verbosity['stepper_config']:
+        if logs.core['comm']['stepper_config']:
             self.log('2 wire stepper being set up\n' +
                  'Steps per revolution: %d\n' +
                  'pins: %d, %d' %
@@ -131,7 +130,7 @@ class Port():  # TODO: test this
         return self.steppers
 
     def stepper_config_4(self, steps_per_rev, pin1, pin2, pin3, pin4):
-        if self.verbosity['stepper_config']:
+        if logs.core['comm']['stepper_config']:
             self.log(('4 wire stepper being setup\n' +
                  'Steps per revolution: %d\n' +
                  'pins: %d, %d, %d, %d') %
@@ -150,7 +149,7 @@ class Port():  # TODO: test this
 
     def stepper_step(self, stepper_num, direction, steps, speed,
                      accel=None, decel=None):
-        if self.verbosity['stepper_step']:
+        if logs.core['comm']['stepper_step']:
             self.log(('Stepper %d is stepping in %d direction for %dsteps' +
                       'at %d speed with an optional accel: %d and decel:%d') %
                  (stepper_num, direction, steps, speed, accel, decel))

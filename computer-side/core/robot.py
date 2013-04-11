@@ -1,61 +1,89 @@
-from framework import process
-from core import comm
 import time
+import collections
 import re
+from framework import process, util
+from core import comm
+from config import robot_setup, logs
 
-R = re.compile('self\._servos\[{wildcard}\]\.{wildcard}\({wildcard}\)'
-               .format(wildcard='(.*?)'))
-INCREMENT = 3
-
-
-def mapi(val, in_min, in_max, out_min, out_max):
-    '''Much like arduino's map.
-
-if val is on a scale between in_min and in_max, 
-then the return value is the proportional value on a scale between
-out_min and out_max'''
-    return int((float(val) - in_min) / (in_max - in_min) *
-               (out_max - out_min) + out_min)
+R = re.compile(
+    ('self\._servos\[{quote}{word}{quote}\]\.{word}\({digit}\)')
+    .format(quote='''['"]''', word='(.*?)', digit='([0-0])'))
+INCREMENT = 10
 
 
 class Robot(process.Process):
-    def __init__(self, servos, log_function):
-        process.Process.__init__(self, log_function)
+    def __init__(self, servos, log_function, thread=True):
+        process.Process.__init__(self, log_function, thread)
         self.log = log_function
-        self.port = comm.Port(log_function)
-        self._servos = {}
+        self.port = comm.Port(robot_setup.port_name, log_function)
+        self.sens = 0.07
+        self._servos = collections.OrderedDict()
+        self.thread = thread
         for args in servos:
-            self._servos[args[0]] = _Servo(self.port, *args[1:])
+            self._servos[args[0]] = _Servo(self, *args[0:])
 
     def direct_augment(self, servo, angle):
-        self.action_input('self._servos[%s].direct_augment(%d)' %
+        self.do_action('self._servos[%s].direct_augment(%.3f)' % 
                           (repr(servo), angle))
 
     def indirect_augment(self, servo, angle):
-        self.action_input('self._servos[%s].indirect_augment(%d)' %
+        self.do_action('self._servos[%s].indirect_augment(.3f)' % 
                           (repr(servo), angle))
 
     def direct_move(self, servo, angle):
-        self.action_input('self._servos[%s].direct_move(%d)' %
-                          (repr(servo), angle))
+        self.do_action('self._servos[%s].direct_move(%.3f)' % 
+                        (repr(servo), angle))
 
     def indirect_move(self, servo, angle):
-        self.action_input('self._servos[%s].indirect_move(%d)' %
+        self.do_action('self._servos[%s].indirect_move(%.3f)' % 
                           (repr(servo), angle))
 
+    def sens_r(self, increment):
+        print (increment)
+        self.do_action('self.sens *= %.6f' % increment)
+        if self.sens == 0.0: # lower bound
+            self.do_action('self.sens == 0.001')
+        print (self.sens)
+
+    def sens_r_up(self):
+        self.sens_r(2)
+
+    def sens_r_down(self):
+        self.sens_r(.5)
+
+    def sens_s(self, name, increment):
+        self.do_action('self._servos["%s"].sens *= %.6f' % (name, increment))
+        if self.sens == 0.0:
+            self.do_action('self.servos["%s"].sens = .00001' % name)
+
+    def sens_s_up(self, name):
+        self.sens_s(2, name)
+
+    def sens_s_down(self, name):
+        self.sens_s(.5, name)
+    
+    # TODO: Properties?
+    def get_sensitivity(self, name):
+        return self._servos[name].sens * self.sens
+
     def write_micros(self, servo, micros):
-        self.action_input('self._servos[%s].write_micros(%d)' %
+        self.do_action('self._servos[%s].write_micros(%d)' % 
                           (repr(servo), micros))
 
-    def _do_action(self, action):
-        self.log('hi1')
-        if logs.core['robot']['command']:
-            comm = R.match(action)
-            self.log('hi2')
-            self.log('%s %s to %s' % comm.groups())
-        process.Process._do_action(self, action)
+    def _actually_do_action(self, action):
+        # if logs.core['robot']['command']:
+            # comm = R.finditer(action)
+            # if not int(comm.groups()[2]) == 0:
+            #    self.log('%s %s to %s' % comm.groups())
+        process.Process._actually_do_action(self, action)
+        
 
-    #def quit(self):
+    def _quit(self):
+        try:
+            self.port.close()
+            process.Process.quit(self)
+        except:
+            pass  # already partially destructed
 
     def __getitem__(self, name):
         return self._servos[name]
@@ -64,22 +92,29 @@ class Robot(process.Process):
         return '\n'.join('%s is at %d' % (name, servo.read())
                          for name, servo in self._servos.items())
 
-
-class _Servo:
-    def __init__(self, port, pin, pulse_range=(600, 2400), start_angle=0,
-                 valid_range=(0, 180), speed=.1):
-        self.port = port
+class _Servo (object):
+    def __init__(self, robot, name, pin, pulse_range=(600, 2400),
+                 start_angle=0, valid_range=(0, 180), speed=.1):
+        self.robot = robot  # enclosing type
         self.pin = pin
         self.speed = speed
+        self.sens = 1.0
+        self.name = name
         self.range = valid_range
-        self.port.servo_config(pin, min(pulse_range), max(pulse_range))
+        self._angle = start_angle
+        self.robot.port.servo_config(pin, min(pulse_range), max(pulse_range))
         self.direct_move(start_angle)
 
-    def direct_move(self, new_angle):  # TODO property for _angle?
-        mini, maxi = self.range
-        adjusted_angle = mapi(new_angle, 0, 180, mini, maxi)
-        self.port.servo_move(self.pin, adjusted_angle)
-        self._angle = new_angle
+    def direct_move(self, extern_angle):  # TODO property for _angle?
+        extern_angle = min(180, max(0, extern_angle))
+        intern_angle = util.mapi(extern_angle, 0, 180, min(self.range), max(self.range))
+        self.robot.port.servo_move(self.pin, intern_angle)
+        if not self._angle == extern_angle:
+            print ('%s: %.3f' % (self.name, extern_angle))
+        self._angle = extern_angle
+        if logs.core['robot']['direct_move']:
+            self.robot.log('Input angle: %d,\nadjusted angle: %d' % 
+                           (extern_angle, intern_angle))
 
     def indirect_move(self, new_angle):
         try:
@@ -92,7 +127,7 @@ class _Servo:
             if new_angle > self._angle + INCREMENT:
                 increment = INCREMENT
             elif new_angle < self._angle - INCREMENT:
-                increment = - INCREMENT
+                increment = -INCREMENT
             else:
                 break  # shouldn't ever happen
             self._angle += increment
@@ -115,7 +150,9 @@ class _Servo:
         self._time_set()
 
     def direct_augment(self, delta_angle):
-        self.direct_move(self.angle + delta_angle)
+#        if not delta_angle == 0.0:
+#            print '%10s: %f\t\t145' % (self.name, delta_angle)
+        self.direct_move(self.read() + delta_angle)
 
     def indirect_augment(self, delta_angle):
         self.indirect_move(self.angle + delta_angle)

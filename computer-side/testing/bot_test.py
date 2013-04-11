@@ -1,9 +1,12 @@
-from __future__ import print_function
 import time
 from core import robot
 from config import robot_setup
 
-bot = robot.Robot(robot_setup.servos, print)
+def printy(arg):
+    print (arg)
+
+
+bot = robot.Robot(robot_setup.servos, printy)
 print (str(bot))
 bot.start()
 
