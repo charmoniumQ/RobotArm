@@ -113,8 +113,9 @@ class _Servo (object):
             print ('%s: %.3f' % (self.name, extern_angle))
         self._angle = extern_angle
         if logs.core['robot']['direct_move']:
-            self.robot.log('Input angle: %d,\nadjusted angle: %d' % 
-                           (extern_angle, intern_angle))
+            self.robot.log('%s servo, Input angle: %d,\nadjusted angle: %d' % 
+                           (self.name, extern_angle, intern_angle))
+            print (self.pin)
 
     def indirect_move(self, new_angle):
         try:

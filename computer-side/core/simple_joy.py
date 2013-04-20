@@ -3,11 +3,6 @@ from framework import joystick, util
 from core import robot
 from config import robot_setup, logs
 
-#import os
-#os.system('echo | env | grep LD_LIBRARY_PATH')
-#import sys
-#sys.exit()
-
 class Runner(joystick.JoystickReader):
     def __init__(self):
         self.bot = robot.Robot(robot_setup.servos, util.printf, False)
@@ -19,7 +14,7 @@ class Runner(joystick.JoystickReader):
         self.bot.direct_augment("waist", self.adjust_axis("waist", 2))
 #        self.bot.direct_move("shoulder", 56)
         self.bot.direct_augment("shoulder", self.adjust_axis("shoulder", 5))
-        self.bot.direct_augment("elbow", self.adjust_axis("elbow", 1))
+        self.bot.direct_augmxxent("elbow", self.adjust_axis("elbow", 1))
         self.bot.direct_augment("wrist", self.adjust_axis("wrist", 6))
         self.bot.direct_augment("claw", self.adjust_axis("claw", 7))
         # TODO: claw axis 7

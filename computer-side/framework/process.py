@@ -6,7 +6,7 @@ from config import logs
 
 
 class Process (multiprocessing.Process):
-    def __init__(self, log_function, parallel=False):
+    def __init__(self, log_function, parallel=True):
         #TODO: modular
         multiprocessing.Process.__init__(self)
         self.log = log_function

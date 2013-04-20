@@ -1,5 +1,4 @@
 import time
-import math
 import process
 import pygame
 from pygame import joystick, event
