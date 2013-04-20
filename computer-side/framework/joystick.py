@@ -8,7 +8,7 @@ class JoystickReader(process.Process):
     def __init__(self, log, thread=False):
         process.Process.__init__(self, log, thread)
         self.pygame_init()
-        self.joystick_init()
+        #self.joystick_init()
 
     def pygame_init(self):
         pygame.init()
@@ -78,8 +78,7 @@ class JoystickReader(process.Process):
             self.log('unknown error')
             self.quit()
 
-    def quit(self):
-        process.Process.quit(self)
+    def _quit(self):
         try:
             self.controls.quit()
         except pygame.error:

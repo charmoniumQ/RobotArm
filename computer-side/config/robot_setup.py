@@ -5,7 +5,8 @@ servos = [
     ('wrist', 9, (600, 2400), 0),
     ('claw', 8, (600, 2400), 0),
 ]
-#port_name = 'F'
-port_name = 'R:/dev/ttyUSB*'
+#TODO: servo control sensitivity
+port_name = 'F'
+#port_name = 'R:/dev/ttyUSB*'
 baud_rate = 57600
 object_name = 'Robot over Serial'

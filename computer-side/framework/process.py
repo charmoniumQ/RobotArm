@@ -12,7 +12,6 @@ class Process (multiprocessing.Process):
         self.log = log_function
         self.parallel = parallel
         self.actions_q = multiprocessing.Queue()
-        self.objects_q = multiprocessing.Queue()
         self.quitting = multiprocessing.Event()
         self.delay(0)
         self.pause(False)
@@ -22,7 +21,7 @@ class Process (multiprocessing.Process):
     def start(self):
         if not self.parallel:
             raise RuntimeError('This is thread is not set to run' +
-                               'in self.parellel.')
+                               'in self.parallel.')
         if self.is_alive():
             if logs.framework['process']['double_start']:
                 self.log('Already started')
@@ -33,7 +32,6 @@ class Process (multiprocessing.Process):
             multiprocessing.Process.start(self)
 
     def run(self):
-        #TODO: boilerplate
         self.setup()
         self.loop()
         self.end()
@@ -49,35 +47,21 @@ class Process (multiprocessing.Process):
                 self.log('Finished loop %d' % self.loop_count)
 
     def _loop(self):
-        self.process_input()
+        self.process_queue()
         self.mode()
 
-    def process_input(self):
-        while not self.objects_q.empty():
-            self._make_object()
+    def process_queue(self):
         while not self.actions_q.empty():
-            self._do_action()
+            action = self.actions_q.get()
+            if logs.framework['process']['actions']:
+                self.log('Doing: %s' % action)
+            try:
+                self._do_action(action)
+            except:
+                self.error(action, sys.exc_info())
 
-    def _do_action(self):
-        action = self.actions_q.get()
-        if logs.framework['process']['actions']:
-            self.log('Doing: %s' % action)
-        try:
-            self._actually_do_action(action)
-        except:
-            self.error(action, sys.exc_info())
-
-    def _actually_do_action(self, action):
+    def _do_action(self, action):
         exec action in locals()
-
-    def _make_object(self):
-        name, obj = self.actions_q.get()
-        if logs.framework['process']['objects']:
-            self.log('Making: {0} = {1!s}'.format(name, obj))
-        self._actually_make_object(name, obj)
-
-    def _actually_make_object(self, name, obj):
-        setattr(self, name, obj)
 
     def error(self, action, exc_info):
         if logs.framework['process']['error']:
@@ -89,7 +73,8 @@ class Process (multiprocessing.Process):
         if not (self.is_paused() or self.is_delayed()):
             self._mode()
         else:
-            self.log('delayed')
+            if logs.framework['process']['mode']:
+                self.log('paused or delayed')
 
     def _mode(self):
         pass
@@ -129,14 +114,7 @@ class Process (multiprocessing.Process):
         if self.parallel:
             self.actions_q.put(action)
         else:
-            self._actually_do_action(action)
-
-    def make_object(self, name, obj):
-        if logs.framework['process']['make_object']:
-            self.log('Will make: %s with name: %s' % (str(obj), name))
-        if logs.framework['process']['idle'] and self.idle():
-            self.log('Not idle')
-        self.objects_q.put((name, obj))
+            self._do_action(action)
 
     #@property
     def is_quitting(self):

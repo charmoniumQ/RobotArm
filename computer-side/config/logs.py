@@ -13,7 +13,6 @@ def def_dict(default_val, start):
 
 framework = {
     'controller': def_dict(False, {
-        'command': True,
     }),
     'executor': def_dict(False, {}),
     'process': def_dict(True, {
@@ -43,13 +42,9 @@ core = {
         'successful_port': True,
     }),
     'robot': def_dict(False, {
-        'command': True,
-        'direct_move': False,
+        'movement': True,
     }),
     'manual_control': def_dict(False, {
-        'get_condition': True,
-        'get_value': True,
-        'mode': True,
     }),
     'auomatic_control': def_dict(False, {
     }),
@@ -59,7 +54,6 @@ core = {
         'unmapped_key': False,
     }),
     'joystick': def_dict(False, {
-        'axis_nonzero': False,
     }),
 }
 
@@ -69,6 +63,5 @@ testing = {
         'name': False,
     }),
     'simple_joy': def_dict(False, {
-        'axis_nonzero': False,
     }),
 }

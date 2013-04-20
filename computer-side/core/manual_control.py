@@ -1,15 +1,16 @@
-from framework import controller, joystick
+from core import simple_joy
+from framework import controller
 from config import logs
 
 
-class ManualControl(controller.ControllerProcess, joystick.JoystickReader):
+class ManualControl(controller.ControllerProcess):
     def __init__(self, bot, logger_function):
         controller.ControllerProcess.__init__(self, bot, logger_function)
-        joystick.JoystickReader.__init__(self, logger_function)
+        self.controls = simple_joy.Runner()
         self._mode = self.blank
 
     def run(self):
-        controller.ControllerProcess.run(self)
+        self.controls._loop()
 
     def blank(self):
         pass
@@ -32,8 +33,8 @@ class ManualControl(controller.ControllerProcess, joystick.JoystickReader):
         if self.controls.get_button(5):
             self.bot.sens_s_down()
 
-    def _actually_do_action(self, action):
-        controller.ControllerProcess._actually_do_action(self, action)
+    def _do_action(self, action):
+        controller.ControllerProcess._do_action(self, action)
 
     def set_mode(self, mode):
         if logs.core['manual_control']:

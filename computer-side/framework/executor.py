@@ -18,7 +18,7 @@ class ExecutorProcess (process.Process):
         self.index = 0
 
     def mode(self):
-        while self.index != len(self.routine):
+        if self.index != len(self.routine):
             process.Process.mode(self)
 
     def _mode(self):

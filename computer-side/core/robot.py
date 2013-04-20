@@ -1,9 +1,9 @@
-import time
+from config import robot_setup, logs
+from core import comm
+from framework import process, util
 import collections
 import re
-from framework import process, util
-from core import comm
-from config import robot_setup, logs
+import time
 
 R = re.compile(
     ('self\._servos\[{quote}{word}{quote}\]\.{word}\({digit}\)')
@@ -25,18 +25,26 @@ class Robot(process.Process):
     def direct_augment(self, servo, angle):
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 
                           (repr(servo), angle))
+        if logs.core['robot']['movement']:
+            self.log('%s direct_augment by %d' % (servo, angle))
 
     def indirect_augment(self, servo, angle):
         self.do_action('self._servos[%s].indirect_augment(.3f)' % 
                           (repr(servo), angle))
+        if logs.core['robot']['movement']:
+            self.log('%s indirect_augment by %d' % (servo, angle))
 
     def direct_move(self, servo, angle):
         self.do_action('self._servos[%s].direct_move(%.3f)' % 
                         (repr(servo), angle))
+        if logs.core['robot']['movement']:
+            self.log('%s direct_move to %d' % (servo, angle))
 
     def indirect_move(self, servo, angle):
         self.do_action('self._servos[%s].indirect_move(%.3f)' % 
                           (repr(servo), angle))
+        if logs.core['robot']['movement']:
+            self.log('%s indirect_move to %d' % (servo, angle))
 
     def sens_r(self, increment):
         print (increment)
@@ -70,12 +78,12 @@ class Robot(process.Process):
         self.do_action('self._servos[%s].write_micros(%d)' % 
                           (repr(servo), micros))
 
-    def _actually_do_action(self, action):
+    def _do_action(self, action):
         # if logs.core['robot']['command']:
             # comm = R.finditer(action)
             # if not int(comm.groups()[2]) == 0:
             #    self.log('%s %s to %s' % comm.groups())
-        process.Process._actually_do_action(self, action)
+        process.Process._do_action(self, action)
         
 
     def _quit(self):
@@ -94,11 +102,11 @@ class Robot(process.Process):
 
 class _Servo (object):
     def __init__(self, robot, name, pin, pulse_range=(600, 2400),
-                 start_angle=0, valid_range=(0, 180), speed=.1):
+                 start_angle=0, valid_range=(0, 180), speed=.1, sens=1.0):
         self.robot = robot  # enclosing type
         self.pin = pin
         self.speed = speed
-        self.sens = 1.0
+        self.sens = sens
         self.name = name
         self.range = valid_range
         self._angle = start_angle
