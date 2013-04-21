@@ -20,7 +20,7 @@ class Process (multiprocessing.Process):
 
     def start(self):
         if not self.parallel:
-            raise RuntimeError('This is thread is not set to run' +
+            raise RuntimeError('This is thread is not set to joystick' +
                                'in self.parallel.')
         if self.is_alive():
             if logs.framework['process']['double_start']:
@@ -129,6 +129,9 @@ class Process (multiprocessing.Process):
         else:
             if logs.framework['process']['double_quit']:
                 self.log('Already quit')
+        if not self.parallel:
+            # then the loop won't be waiting for a certain signal
+            self._quit()
 
     def _quit(self):
         try: self.actions_q.close()
@@ -137,6 +140,7 @@ class Process (multiprocessing.Process):
         except: pass
 
     def end(self):
+        #TODO: why not just make this _quit?
         self._quit()
 
     def __del__(self):  # TODO: is del'ing necessary?

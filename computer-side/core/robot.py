@@ -16,7 +16,7 @@ class Robot(process.Process):
         process.Process.__init__(self, log_function, thread)
         self.log = log_function
         self.port = comm.Port(robot_setup.port_name, log_function)
-        self.sens = 0.07
+        self.sens = 1.0
         self._servos = collections.OrderedDict()
         self.thread = thread
         for args in servos:
@@ -25,25 +25,25 @@ class Robot(process.Process):
     def direct_augment(self, servo, angle):
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 
                           (repr(servo), angle))
-        if logs.core['robot']['movement']:
+        if logs.core['robot']['movement'] and not angle == 0:
             self.log('%s direct_augment by %d' % (servo, angle))
 
     def indirect_augment(self, servo, angle):
         self.do_action('self._servos[%s].indirect_augment(.3f)' % 
                           (repr(servo), angle))
-        if logs.core['robot']['movement']:
+        if logs.core['robot']['movement'] and not angle == 0:
             self.log('%s indirect_augment by %d' % (servo, angle))
 
     def direct_move(self, servo, angle):
         self.do_action('self._servos[%s].direct_move(%.3f)' % 
                         (repr(servo), angle))
-        if logs.core['robot']['movement']:
+        if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
             self.log('%s direct_move to %d' % (servo, angle))
 
     def indirect_move(self, servo, angle):
         self.do_action('self._servos[%s].indirect_move(%.3f)' % 
                           (repr(servo), angle))
-        if logs.core['robot']['movement']:
+        if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
             self.log('%s indirect_move to %d' % (servo, angle))
 
     def sens_r(self, increment):
@@ -117,13 +117,9 @@ class _Servo (object):
         extern_angle = min(180, max(0, extern_angle))
         intern_angle = util.mapi(extern_angle, 0, 180, min(self.range), max(self.range))
         self.robot.port.servo_move(self.pin, intern_angle)
-        if not self._angle == extern_angle:
-            print ('%s: %.3f' % (self.name, extern_angle))
+        if logs.core['robot']['direct_move'] and not self._angle == extern_angle:
+            self.robot.log('%s: %.3f' % (self.name, extern_angle))
         self._angle = extern_angle
-        if logs.core['robot']['direct_move']:
-            self.robot.log('%s servo, Input angle: %d,\nadjusted angle: %d' % 
-                           (self.name, extern_angle, intern_angle))
-            print (self.pin)
 
     def indirect_move(self, new_angle):
         try:

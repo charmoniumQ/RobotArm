@@ -53,7 +53,7 @@ class GUIProcess(object):
             master = tk.Tk()
         self.master = master
 
-    def run(self):
+    def joystick(self):
         self.master.mainloop()
         self.quit()
 

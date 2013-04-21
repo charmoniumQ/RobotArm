@@ -14,53 +14,36 @@ def def_dict(default_val, start):
 framework = {
     'controller': def_dict(False, {
     }),
-    'executor': def_dict(False, {}),
-    'process': def_dict(True, {
-        'loop': False,
-        'do_action': False,
-        'make_object': False,
-        'actions': False,
-        'objects': False,
-        'double_quit': False,
-        'double_start': False,
-        'pause': False,
-        'idle': False,
+    'executor': def_dict(False, {
     }),
-    'gui': def_dict(False, {}),
-    'joystick': def_dict(False, {
-        'movement': True,
-        'error': True,
+    'process': def_dict(False, {
+    }),
+    'gui': def_dict(False, {
     }),
     'joystick': def_dict(False, {
-        'sanity': True,
-    })
+    }),
+    'joystick': def_dict(False, {
+    }),
 }
 
 core = {
     'comm': def_dict(False, {
-        'try_uno_ports': False,
-        'successful_port': True,
     }),
     'robot': def_dict(False, {
-        'movement': True,
+        'direct_move': True,
     }),
     'manual_control': def_dict(False, {
     }),
     'auomatic_control': def_dict(False, {
     }),
-    'master': def_dict(True, {
-        'key': False,
-        'do_key': False,
-        'unmapped_key': False,
+    'master': def_dict(False, {
     }),
     'joystick': def_dict(False, {
     }),
 }
 
 testing = {
-    'slider': def_dict(True, {
-        'moving': False,
-        'name': False,
+    'slider': def_dict(False, {
     }),
     'simple_joy': def_dict(False, {
     }),

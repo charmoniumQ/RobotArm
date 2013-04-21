@@ -78,4 +78,4 @@ class App(util.GUIProcess):
         except: pass
 
 if __name__ == '__main__':
-    App().run()
+    App().joystick()
