@@ -38,6 +38,8 @@ class Process (multiprocessing.Process):
 
     def setup(self):
         self.loop_count = 0
+        if logs.framework['process']['pid']:
+            self.log(str(self.pid))
 
     def loop(self):
         while not self.is_quitting():

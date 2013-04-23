@@ -19,6 +19,7 @@ framework = {
     'process': def_dict(False, {
         '__init__': True,
         'double_start': True,
+        'pid': True,
         'quit': True,
         'double_quit': True,
         'error': True,
@@ -36,16 +37,20 @@ core = {
     }),
     'robot': def_dict(False, {
         'direct_move': True,
+        'movement': True,
     }),
     'manual_control': def_dict(False, {
     }),
     'auomatic_control': def_dict(False, {
     }),
     'master': def_dict(False, {
+        'key': True,
+        'mouse': True,
     }),
     'joystick': def_dict(False, {
     }),
     'simple_joy': def_dict(False, {
+        'axis_nonzero': True,
     }),
 }
 

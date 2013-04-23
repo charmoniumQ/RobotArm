@@ -1,7 +1,7 @@
 import functools
 import sys
 import os
-import time
+import multiprocessing
 from core import robot, automatic_control, manual_control
 from framework import four_panel, util
 from config import robot_setup, logs
@@ -17,6 +17,7 @@ class App(four_panel.FourPanel):
 
     def init_tk(self):
         four_panel.FourPanel.__init__(self)
+        self.after(100, self.main)
         self.root.bind('<Key>', self.key)
         self.root.bind('<Button-1>', self.mouse)
         self.root.focus_set()
@@ -26,21 +27,19 @@ class App(four_panel.FourPanel):
         self.set(1, 1, 'Manual controls\n')
 
     def init_processes(self):
-        self.log = f(self.append, 0, 0)
-        self.bot = robot.Robot(robot_setup.servos, f(self.append, 0, 1))
+        self.log_msg = multiprocessing.Queue()
+
+        self.log = f(self.request_log, 0, 0)
+        self.bot = robot.Robot(robot_setup.servos, f(self.request_log, 0, 1))
         self.auto = automatic_control.AutomaticControl(self.bot,
-            f(self.append, 1, 0), self.quit)
+            f(self.request_log, 1, 0), self.quit)
         self.manual = manual_control.ManualControl(self.bot,
-            f(self.append, 1, 1), self.quit)
+            f(self.request_log, 1, 1), self.quit)
 
         self.bot.start()
         self.auto.start()
         self.manual.start()
-
-        print 'robot %d' % self.bot.pid
-        print 'automatic controls %d' % self.auto.pid
-        print 'manual controls%d' % self.manual.pid
-        print 'master %d' % os.getpid()
+        self.log(str(os.getpid()))
 
     def init_keys(self):
         self.key_map = {
@@ -48,6 +47,17 @@ class App(four_panel.FourPanel):
             'right': self.auto.next,
             'space': self.auto.pause,
         }
+
+    def main(self):
+        while not self.log_msg.empty():
+            args = self.log_msg.get()
+            try:
+                self.append(*args)
+            except TypeError:
+                print (args)
+
+    def request_log(self, row, col, msg):
+        self.log_msg.put((row, col, msg))
 
     def key(self, event):
         if logs.core['master']['key']:
@@ -92,7 +102,7 @@ class App(four_panel.FourPanel):
         try:
             four_panel.FourPanel.quit(self)
         except:
-            print sys.exc_info()
+            print 'master', sys.exc_info()
         print 'quitted'
 
     @staticmethod
