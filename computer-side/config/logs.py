@@ -17,6 +17,11 @@ framework = {
     'executor': def_dict(False, {
     }),
     'process': def_dict(False, {
+        '__init__': True,
+        'double_start': True,
+        'quit': True,
+        'double_quit': True,
+        'error': True,
     }),
     'gui': def_dict(False, {
     }),
@@ -40,11 +45,11 @@ core = {
     }),
     'joystick': def_dict(False, {
     }),
+    'simple_joy': def_dict(False, {
+    }),
 }
 
 testing = {
     'slider': def_dict(False, {
-    }),
-    'simple_joy': def_dict(False, {
     }),
 }

@@ -2,10 +2,11 @@ import time
 import process
 import pygame
 from pygame import joystick, event
-from config import logs
 
 class JoystickReader(process.Process):
     def __init__(self, log, thread=False):
+        # TODO: this is ugly and misleading.
+        # It inherits from Process, but it doesnot actually make another process
         process.Process.__init__(self, log, thread)
         self.pygame_init()
         self.joystick_init()
@@ -25,7 +26,6 @@ class JoystickReader(process.Process):
                 'defaulting to first')
         self.controls = joystick.Joystick(0)
         self.controls.init()
-        print (self.controls.get_name())
 
     def _mode(self):
         self.events()
@@ -43,43 +43,51 @@ class JoystickReader(process.Process):
     def joystick(self):
         for axis in range(self.controls.get_numaxes()):
             val = self.get_axis(axis)
-            print '%d:%d, ' % (axis, (10*val)),
             time.sleep(.05)
+            print '%d: %.3f' % (axis, val)
         print
 
     def get_axis(self, axis_num):
         self.sanity()
-        val = self.controls.get_axis(axis_num)
-        if logs.core['joystick']['axis_nonzero']:
-            if not val == 0:
-                print '%d: %d' % (axis_num, val)
+        try:
+            val = self.controls.get_axis(axis_num)
+        except:
+            # TODO: enable logging
+            self.quit()
+            return 0.0
         return val
 
     def get_button(self, button_num):
         self.sanity()
-        return self.controls.get_button(button_num)
+        try:
+            val = self.controls.get_button(button_num)
+        except:
+            self.quit()
+            return False
+        return val
 
     def get_hat(self, hat_num):
         self.sanity()
-        return self.controls.get_hat(hat_num)
+        try:
+            val = self.controls.get_hat(hat_num)
+        except:
+            self.quit()
+            return (0,0)
+        return val
 
     def sanity(self):
-        try:
+        try:  # TODO: log this somewhere
             if not joystick.get_init():
                 self.quit()
-                self.log('pygame.joystick is not inited')
             if not joystick.get_count():
                 self.quit()
-                self.log('joystick lost')
             if not self.controls.get_init():
                 self.quit()
-                self.log('self.controls is not inited')
         except:
-            self.log('unknown error')
             self.quit()
 
     def _quit(self):
-        print ('quitted')
+        #TODO: investigate quititng cleanly
         try:
             self.controls.quit()
         except pygame.error:

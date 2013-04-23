@@ -47,16 +47,14 @@ class Logger(process.Process):
         self.write('Manual', s)
 
 
-class GUIProcess(object):
-    def __init__(self, master=None, *args, **kwargs):
+class GUIProcess(tk.Frame):
+    def __init__(self, master=None):
         if master is None:
             master = tk.Tk()
-        self.master = master
+        self.root = master
+        tk.Frame.__init__(self, self.root)
 
-    def joystick(self):
-        self.master.mainloop()
-        self.quit()
-
+    #TODO: quit cleanly
     def quit(self):
         try:
             self.master.destroy()  # For environments like IDLE

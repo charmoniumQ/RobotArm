@@ -1,38 +1,49 @@
 import functools
-import Tkinter as tk
+import sys
+import os
+import time
 from core import robot, automatic_control, manual_control
-from framework import util
-from config import robot_setup
-from config import logs
+from framework import four_panel, util
+from config import robot_setup, logs
 
 f = functools.partial
 
 
-class App(util.GUIProcess):
+class App(four_panel.FourPanel):
     def __init__(self):
-        util.GUIProcess.__init__(self)
-        self.frame = tk.Frame(self.master, width=640, height=480,
-            takefocus=1)
-        self.frame.bind('<Key>', self.key)
-        self.frame.bind('<Button-1>', self.mouse)
-        self.frame.grid()
-        self.frame.focus_set()
+        self.init_tk()
+        self.init_processes()
+        self.init_keys()
 
-        self.log = util.Logger()
-        self.bot = robot.Robot(robot_setup.servos, self.log.logobot)
+    def init_tk(self):
+        four_panel.FourPanel.__init__(self)
+        self.root.bind('<Key>', self.key)
+        self.root.bind('<Button-1>', self.mouse)
+        self.root.focus_set()
+        self.set(0, 0, 'Master\n')
+        self.set(0, 1, 'Robot\n')
+        self.set(1, 0, 'Auto controls\n')
+        self.set(1, 1, 'Manual controls\n')
+
+    def init_processes(self):
+        self.log = f(self.append, 0, 0)
+        self.bot = robot.Robot(robot_setup.servos, f(self.append, 0, 1))
         self.auto = automatic_control.AutomaticControl(self.bot,
-            self.log.logAuto)
+            f(self.append, 1, 0), self.quit)
         self.manual = manual_control.ManualControl(self.bot,
-            self.log.logManual)
+            f(self.append, 1, 1), self.quit)
 
-        self.log.start()
         self.bot.start()
         self.auto.start()
         self.manual.start()
 
-        self.key_map = {'e': f(util.execf, 'util.print(str(self.bot))', locals()),
-            '1': f(self.manual.set_mode, 'blank'),
-            '2': f(self.manual.set_mode, 'joystick'),
+        print 'robot %d' % self.bot.pid
+        print 'automatic controls %d' % self.auto.pid
+        print 'manual controls%d' % self.manual.pid
+        print 'master %d' % os.getpid()
+
+    def init_keys(self):
+        self.key_map = {
             'left': self.auto.last,
             'right': self.auto.next,
             'space': self.auto.pause,
@@ -64,18 +75,31 @@ class App(util.GUIProcess):
             print ('clicked at: {ev.x}, {ev.y}'.format(ev=event))
 
     def quit(self):
-        try: self.bot.quit()
-        except: pass
-        try: self.auto.quit()
-        except: pass
-        try: self.manual.quit()
-        except: pass
-        try: util.GUIProcess.quit(self)
-        except: pass
-        while not self.log.idle():
-            pass
-        try: self.log.quit()
-        except: pass
+        #TODO: investigate quitting cleanly
+        print 'quits'
+        try:
+            self.bot.quit()
+        except:
+            print 'robot', sys.exc_info()
+        try:
+            self.auto.quit()
+        except:
+            print 'automatic controls', sys.exc_info()
+        try:
+            self.manual.quit()
+        except:
+            print 'manual controls', sys.exc_info()
+        try:
+            four_panel.FourPanel.quit(self)
+        except:
+            print sys.exc_info()
+        print 'quitted'
+
+    @staticmethod
+    def execute():
+        f = App()
+        f.mainloop()
+        f.quit()
 
 if __name__ == '__main__':
-    App().joystick()
+    App.execute()

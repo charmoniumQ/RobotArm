@@ -166,3 +166,10 @@ class Port(object):  # TODO: test this
             self._stepper(STEPPER_STEP, stepper_num, direction,
                           steps1, steps2, steps3, speed1, speed2,
                           accel1, accel2, decel1, decel2)
+
+    def quit(self):
+        print 'comm quitting cleanly'
+        if self.simulation:
+            return
+        self.uno.exit()
+

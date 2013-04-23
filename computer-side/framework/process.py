@@ -20,7 +20,7 @@ class Process (multiprocessing.Process):
 
     def start(self):
         if not self.parallel:
-            raise RuntimeError('This is thread is not set to joystick' +
+            raise RuntimeError('This is thread is not set to run' +
                                'in self.parallel.')
         if self.is_alive():
             if logs.framework['process']['double_start']:
@@ -144,6 +144,7 @@ class Process (multiprocessing.Process):
         self._quit()
 
     def __del__(self):  # TODO: is del'ing necessary?
+        print ("del'ing")
         try:
             self.quit()
         except:  # already partially destructed

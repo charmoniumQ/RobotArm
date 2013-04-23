@@ -1,3 +1,3 @@
-from testing import slider
+from core import master
 
-slider.App.main()
+master.App().execute()

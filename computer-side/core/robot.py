@@ -16,7 +16,7 @@ class Robot(process.Process):
         process.Process.__init__(self, log_function, thread)
         self.log = log_function
         self.port = comm.Port(robot_setup.port_name, log_function)
-        self.sens = 1.0
+        self.sens = 1.2
         self._servos = collections.OrderedDict()
         self.thread = thread
         for args in servos:
@@ -26,25 +26,25 @@ class Robot(process.Process):
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == 0:
-            self.log('%s direct_augment by %d' % (servo, angle))
+            self.log('%s direct_augment by %.3f' % (servo, angle))
 
     def indirect_augment(self, servo, angle):
         self.do_action('self._servos[%s].indirect_augment(.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == 0:
-            self.log('%s indirect_augment by %d' % (servo, angle))
+            self.log('%s indirect_augment by %.3f' % (servo, angle))
 
     def direct_move(self, servo, angle):
         self.do_action('self._servos[%s].direct_move(%.3f)' % 
                         (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
-            self.log('%s direct_move to %d' % (servo, angle))
+            self.log('%s direct_move to %.3f' % (servo, angle))
 
     def indirect_move(self, servo, angle):
         self.do_action('self._servos[%s].indirect_move(%.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
-            self.log('%s indirect_move to %d' % (servo, angle))
+            self.log('%s indirect_move to %.3f' % (servo, angle))
 
     def sens_r(self, increment):
         print (increment)
@@ -69,7 +69,7 @@ class Robot(process.Process):
 
     def sens_s_down(self, name):
         self.sens_s(.5, name)
-    
+
     # TODO: Properties?
     def get_sensitivity(self, name):
         return self._servos[name].sens * self.sens
@@ -84,20 +84,16 @@ class Robot(process.Process):
             # if not int(comm.groups()[2]) == 0:
             #    self.log('%s %s to %s' % comm.groups())
         process.Process._do_action(self, action)
-        
 
     def _quit(self):
-        try:
-            self.port.close()
-            process.Process.quit(self)
-        except:
-            pass  # already partially destructed
+        print ('robot quitting')
+        self.port.quit()
 
     def __getitem__(self, name):
         return self._servos[name]
 
     def __str__(self):
-        return '\n'.join('%s is at %d' % (name, servo.read())
+        return '\n'.join('%s is at %.3f' % (name, servo.read())
                          for name, servo in self._servos.items())
 
 class _Servo (object):
