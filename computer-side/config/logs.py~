@@ -39,8 +39,8 @@ core = {
         #'servo_move': True,
     }),
     'robot': def_dict(False, {
-        'direct_move': True,
-        #'movement': True,
+        #'direct_move': True,
+        'movement': True,
     }),
     'manual_control': def_dict(False, {
     }),

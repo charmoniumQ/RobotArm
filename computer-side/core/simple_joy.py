@@ -13,7 +13,7 @@ class Runner(joystick.JoystickReader):
             bot = robot.Robot(robot_setup.servos, util.printf, False)
         self.bot = bot
         joystick.JoystickReader.__init__(self, log, False)
-        assert self.controls.get_numaxes() >= 4, "old joystick library, or wrong joystick"
+        assert self.controls.get_numaxes() >= 3, "old joystick library, or wrong joystick"
         self.times = defaultdict(time.time)
         self.log(self.controls.get_name())
 
@@ -54,7 +54,7 @@ class Runner(joystick.JoystickReader):
         val = self.get_axis(axis)
         val = self.scale_by_time(name, val)
         val = self.scale_by_sensitivity(name, val)
-        if logs.core['simple_joy']['axis_nonzero']:
+        if logs.core['simple_joy']['axis_nonzero']: 
             if not val == 0.0:
                 self.log('%d is at %.3f' % (axis, val))
         return val

@@ -1,5 +1,4 @@
 from config import robot_setup, logs
-#TODO: make this more generic; take out robot_setup module, and make it be passed in
 from core import comm
 from framework import process, util
 import collections

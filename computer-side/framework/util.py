@@ -48,16 +48,17 @@ class Logger(process.Process):
 
 
 class GUIProcess(tk.Frame):
-    def __init__(self, master=None):
-        if master is None:
-            master = tk.Tk()
-        self.root = master
+    def __init__(self, root=None):
+        if root is None:
+            root = tk.Tk()
+        self.root = root
         tk.Frame.__init__(self, self.root)
 
     #TODO: quit cleanly
     def quit(self):
+        self.root.quit()
         try:
-            self.master.destroy()  # For environments like IDLE
+            self.root.destroy()  # For environments like IDLE
         except tk.TclError:
             pass
 
