@@ -14,14 +14,8 @@ def passf():
 def execf(string, local):
     exec(string, local)
 
-def mapi(val, in_min, in_max, out_min, out_max):
-    '''Much like arduino's map function.
-
-if val is on a scale between in_min and in_max, 
-then the return value is the proportional value on a scale between
-out_min and out_max'''
-    return int((float(val) - in_min) / (in_max - in_min) * 
-               (out_max - out_min) + out_min)
+def clamp(num, mn, mx):
+    return max(mn, min(num, mx))
 
 
 class Logger(process.Process):
@@ -48,17 +42,16 @@ class Logger(process.Process):
 
 
 class GUIProcess(tk.Frame):
-    def __init__(self, root=None):
-        if root is None:
-            root = tk.Tk()
-        self.root = root
+    def __init__(self, master=None):
+        if master is None:
+            master = tk.Tk()
+        self.root = master
         tk.Frame.__init__(self, self.root)
 
     #TODO: quit cleanly
     def quit(self):
-        self.root.quit()
         try:
-            self.root.destroy()  # For environments like IDLE
+            self.master.destroy()  # For environments like IDLE
         except tk.TclError:
             pass
 
@@ -72,3 +65,23 @@ class Timer(object):
 
     def delay(self, period):
         self.delay_time_millis = time.time() + period
+
+class FileLogger(object):
+    def __init__(self, name):
+        self.file = open(name, 'a')
+        self.log('\n\n')
+        self.log(time.ctime())
+        self.log('-'*79)
+
+    def write(self, msg):
+        self.file.write(msg)
+
+    def log(self, msg):
+        self.write(msg)
+        self.write('\n')
+
+    def close(self):
+        self.file.close()
+
+    def __del__(self):
+        self.close()

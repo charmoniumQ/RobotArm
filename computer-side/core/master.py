@@ -7,7 +7,6 @@ from framework import four_panel, util
 from config import robot_setup, logs
 
 f = functools.partial
-REFRESH_MILLIS = 350
 
 
 class App(four_panel.FourPanel):
@@ -15,10 +14,10 @@ class App(four_panel.FourPanel):
         self.init_tk()
         self.init_processes()
         self.init_keys()
-        print ('started')
 
     def init_tk(self):
         four_panel.FourPanel.__init__(self)
+        self.after(100, self.main)
         self.root.bind('<Key>', self.key)
         self.root.bind('<Button-1>', self.mouse)
         self.root.focus_set()
@@ -26,10 +25,10 @@ class App(four_panel.FourPanel):
         self.set(0, 1, 'Robot\n')
         self.set(1, 0, 'Auto controls\n')
         self.set(1, 1, 'Manual controls\n')
-        self.log_msg = multiprocessing.Queue()
-        self.main()
 
     def init_processes(self):
+        self.log_msg = multiprocessing.Queue()
+
         self.log = f(self.request_log, 0, 0)
         self.bot = robot.Robot(robot_setup.servos, f(self.request_log, 0, 1))
         self.auto = automatic_control.AutomaticControl(self.bot,
@@ -50,7 +49,6 @@ class App(four_panel.FourPanel):
         }
 
     def main(self):
-        self.after(REFRESH_MILLIS, self.main)
         while not self.log_msg.empty():
             args = self.log_msg.get()
             try:

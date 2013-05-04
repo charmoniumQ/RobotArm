@@ -21,7 +21,7 @@ framework = {
         'double_start': True,
         'pid': True,
         'quit': True,
-        'double_quit': True,
+        #'double_quit': True,
         'error': True,
     }),
     'gui': def_dict(False, {
@@ -39,7 +39,10 @@ core = {
         #'servo_move': True,
     }),
     'robot': def_dict(False, {
-        'direct_move': True,
+        #'direct_move': True,
+        #'movement': True,
+    }),
+    'servo': def_dict(False, {
         #'movement': True,
     }),
     'manual_control': def_dict(False, {

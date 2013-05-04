@@ -54,7 +54,7 @@ class App (util.GUIProcess, controller.ControllerProcess):
         app.quit()
 
     def quit(self):
-        # controller.ControllerProcess.quit(self)
+        controller.ControllerProcess.quit(self)
         util.GUIProcess.quit(self)
 
 if __name__ == '__main__':

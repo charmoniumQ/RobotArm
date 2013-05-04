@@ -15,13 +15,16 @@ INCREMENT = 10
 class Robot(process.Process):
     def __init__(self, servos, log_function, thread=True):
         process.Process.__init__(self, log_function, thread)
+        print servos
         self.log = log_function
         self.port = comm.Port(robot_setup.port_name, log_function)
         self.sens = robot_setup.robot_sens
+        self.sens_exp = robot_setup.robot_sens_exp
         self._servos = collections.OrderedDict()
         self.thread = thread
         for args in servos:
-            self._servos[args[0]] = _Servo(self, *args[0:])
+            print args[0:]
+            self._servos[args[0]] = _Servo(self, *args[0:], log_function=log_function)
 
     def direct_augment(self, servo, angle):
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 
@@ -75,15 +78,14 @@ class Robot(process.Process):
     def get_sensitivity(self, name):
         return self._servos[name].sens * self.sens
 
+    def get_sensitivity_exponent(self, name):
+        return self._servos[name].sens_exp + self.sens_exp
+
     def write_micros(self, servo, micros):
         self.do_action('self._servos[%s].write_micros(%d)' % 
                           (repr(servo), micros))
 
     def _do_action(self, action):
-        # if logs.core['robot']['command']:
-            # comm = R.finditer(action)
-            # if not int(comm.groups()[2]) == 0:
-            #    self.log('%s %s to %s' % comm.groups())
         process.Process._do_action(self, action)
 
     def _quit(self):
@@ -94,29 +96,31 @@ class Robot(process.Process):
         return self._servos[name]
 
     def __str__(self):
-        return '\n'.join('%s is at %d' % (name, servo.read())
+        return '\n'.join('%8s is at %03.5f => %03.5f' % (name, servo.read(), servo.get_internal_angle())
                          for name, servo in self._servos.items())
 
 class _Servo (object):
     def __init__(self, robot, name, pin, pulse_range=(600, 2400),
-                 start_angle=0, valid_range=(0, 180), speed=.1, sens=1.0):
+                 start_angle=0, valid_range=(0, 180), speed=.1, sens=1.0, sens_exp=1.0,):
         self.robot = robot  # enclosing type
         self.pin = pin
         self.speed = speed
         self.sens = sens
+        self.sens_exp = sens_exp
         self.name = name
         self.range = valid_range
         self._angle = start_angle
         self.robot.port.servo_config(pin, min(pulse_range), max(pulse_range))
         self.direct_move(start_angle)
 
-    def direct_move(self, extern_angle):  # TODO property for _angle?
-        extern_angle = min(180, max(0, extern_angle))
-        intern_angle = util.mapi(extern_angle, 0, 180, min(self.range), max(self.range))
-        self.robot.port.servo_move(self.pin, intern_angle)
-        if logs.core['robot']['direct_move'] and not self._angle == extern_angle:
-            self.robot.log('%s: %.3f' % (self.name, extern_angle))
-        self._angle = extern_angle
+    def direct_move(self, angle):  # TODO property for _angle?
+        if logs.core['servo']['movement']:
+            self.robot.log('servo {:12}, ext ang={:3.2f}'.format(self.name, angle))
+        angle = util.clamp(angle, self.range[0], self.range[1])
+        if logs.core['servo']['movement']:
+            self.robot.log('servo {:12}, clamp  ={:3.2f}'.format(self.name, angle))
+        self.robot.port.servo_move(self.pin, angle)
+        self._angle = angle
 
     def indirect_move(self, new_angle):
         try:
