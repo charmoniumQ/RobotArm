@@ -1,0 +1,212 @@
+
+
+
+Fri May  3 12:52:17 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 13:02:00 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 13:20:30 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 13:35:57 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 13:48:20 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 14:57:38 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 15:01:53 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 15:43:44 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 15:45:41 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Trying: /dev/ttyUSB0
+Using port: /dev/ttyUSB0
+Setup succesful
+Thrustmaster Run'N' Drive
+None
+Quitting...
+
+
+
+Fri May  3 21:03:15 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Quitting...
+
+
+
+Fri May  3 21:03:40 2013
+-------------------------------------------------------------------------------
+Setup succesful
+
+
+
+Fri May  3 21:04:14 2013
+-------------------------------------------------------------------------------
+Setup succesful
+
+
+
+Fri May  3 21:04:35 2013
+-------------------------------------------------------------------------------
+Setup succesful
+
+
+
+Fri May  3 21:06:09 2013
+-------------------------------------------------------------------------------
+Setup succesful
+
+
+
+Fri May  3 21:06:39 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+Quitting...
+
+
+
+Fri May  3 21:08:29 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+Quitting...
+
+
+
+Fri May  3 21:09:17 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+Quitting...
+
+
+
+Fri May  3 21:12:02 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+Quitting...
+
+
+
+Fri May  3 21:19:29 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+Unmapped key: k
+Unmapped key: l
+Unmapped key: l
+Unmapped key: l
+Unmapped key: l
+Unmapped key: j
+Unmapped key: i
+Unmapped key: a
+Unmapped key: s
+Unmapped key: f
+Unmapped key: e
+Unmapped key: left super
+Unmapped key: return
+
+
+
+Fri May  3 21:15:08 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None
+
+
+
+Fri May  3 21:17:35 2013
+-------------------------------------------------------------------------------
+Setup succesful
+Setup succesful
+None

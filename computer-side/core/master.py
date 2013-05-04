@@ -65,19 +65,18 @@ class App(four_panel.FourPanel):
                 .format(ev=event))
         self.do_key(event.keysym)
 
-    def do_key(self, keysym):
-        func = None
+    def do_key(self, key):
         try:
-            func = self.key_map[keysym]
+            func = self.key_map[key]
         except KeyError:  # print out unknown key
             if logs.core['master']['unmapped_key']:
-                func = f(util.printf, ('Unmapped key: %s' % keysym))
+                func = f(util.printf, ('Unmapped key: %s' % key))
             else:
                 func = util.passf
         else:
             if logs.core['master']['do_key']:
                 print ('Key: {k}, doing {f!s}'
-                       .format(k=keysym, f=func))
+                       .format(k=key, f=func))
         func()
 
     def mouse(self, event):

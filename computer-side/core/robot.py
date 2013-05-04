@@ -24,7 +24,7 @@ class Robot(process.Process):
         self.thread = thread
         for args in servos:
             print args[0:]
-            self._servos[args[0]] = _Servo(self, *args[0:], log_function=log_function)
+            self._servos[args[0]] = _Servo(self, *args[0:])
 
     def direct_augment(self, servo, angle):
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 

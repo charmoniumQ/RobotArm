@@ -1,7 +1,7 @@
 import time
 import process
 import pygame
-from pygame import joystick, event
+from pygame import joystick, event, display
 
 class JoystickReader(process.Process):
     def __init__(self, log, thread=False):
@@ -13,10 +13,12 @@ class JoystickReader(process.Process):
 
     def pygame_init(self):
         pygame.init()
-        pygame.joystick.init()
+        joystick.init()
         event.set_allowed(None)
         event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBALLMOTION,
             pygame.JOYHATMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP])
+        display.init()
+        self.display = display.set_mode([640, 480], flags=pygame.RESIZABLE)
 
     def joystick_init(self):
         if joystick.get_count() == 0:
@@ -32,13 +34,14 @@ class JoystickReader(process.Process):
         self.joystick()
 
     def events(self):
-        event.pump()
+        #event.pump()
         for current in event.get():
             self.process_events(current)
 
     def process_events(self, current):
         if current.type == pygame.QUIT:
             self.quit()
+            return
 
     def joystick(self):
         for axis in range(self.controls.get_numaxes()):
@@ -93,4 +96,5 @@ class JoystickReader(process.Process):
         except pygame.error:
             pass # already destructed
         joystick.quit()
+        display.quit()
         pygame.quit()

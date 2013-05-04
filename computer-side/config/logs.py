@@ -10,6 +10,7 @@ def def_dict(default_val, start):
     return collections.defaultdict(
         functools.partial(default, default_val), start)
 
+log_file = '/home/sam/Dropbox/dev/eclipse_workspace/Robo/dev/log.txt'
 
 framework = {
     'controller': def_dict(False, {
@@ -57,6 +58,8 @@ core = {
     }),
     'simple_joy': def_dict(False, {
         #'axis_nonzero': True,
+        'unmapped_key': True,
+        'error': True,
     }),
 }
 
