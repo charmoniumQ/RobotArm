@@ -16,6 +16,7 @@ class App(four_panel.FourPanel):
         self.init_keys()
 
     def init_tk(self):
+        '''Organized place for __init__-ing tk things'''
         four_panel.FourPanel.__init__(self)
         self.after(100, self.main)
         self.root.bind('<Key>', self.key)
@@ -27,6 +28,7 @@ class App(four_panel.FourPanel):
         self.set(1, 1, 'Manual controls\n')
 
     def init_processes(self):
+        '''Organized place for __init__-ing process things'''
         self.log_msg = multiprocessing.Queue()
 
         self.log = f(self.request_log, 0, 0)
@@ -42,6 +44,7 @@ class App(four_panel.FourPanel):
         self.log(str(os.getpid()))
 
     def init_keys(self):
+        '''Organized place for __init__-ing key things'''
         self.key_map = {
             'left': self.auto.last,
             'right': self.auto.next,
@@ -49,6 +52,7 @@ class App(four_panel.FourPanel):
         }
 
     def main(self):
+        '''Logs things in the log queue'''
         while not self.log_msg.empty():
             args = self.log_msg.get()
             try:
@@ -57,15 +61,24 @@ class App(four_panel.FourPanel):
                 print (args)
 
     def request_log(self, row, col, msg):
+        '''Asks nicely to post a log to the master's 4-panel logger.'''
         self.log_msg.put((row, col, msg))
 
     def key(self, event):
+        '''Processes a key event.
+
+        logs:
+        logs.core['master']['key']
+            Gives event data
+        logs.core['master']['unmapped_key']
+            In the case that there is no action associated with the key,
+            This will log.
+        logs.core['master']['do_key']
+            This is what the program is executing'''
         if logs.core['master']['key']:
             print ('pressed key: {ev.char} {ev.keysym} {ev.keycode}'
                 .format(ev=event))
-        self.do_key(event.keysym)
-
-    def do_key(self, key):
+        key = event.keysym
         try:
             func = self.key_map[key]
         except KeyError:  # print out unknown key
@@ -80,10 +93,15 @@ class App(four_panel.FourPanel):
         func()
 
     def mouse(self, event):
+        '''Processes a mouse event'''
         if logs.core['master']['mouse']:
             print ('clicked at: {ev.x}, {ev.y}'.format(ev=event))
 
     def quit(self):
+        '''Please call this when done.
+        
+        Appendages like manual_control can call this when they want to.
+        (useful if you want to be able to quit out of this through a joystick button'''
         #TODO: investigate quitting cleanly
         print 'quits'
         try:

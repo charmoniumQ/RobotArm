@@ -14,6 +14,11 @@ INCREMENT = 10
 
 class Robot(process.Process):
     def __init__(self, servos, log_function, thread=True):
+        '''Makes a robot that manages multiple servos in a thread-safe way.
+
+        servos are a tuple of arguments used to construct servo objects
+        log_function is called with messages to log
+        thread tells this weather or not to spawn into a new proces.'''
         process.Process.__init__(self, log_function, thread)
         print servos
         self.log = log_function
@@ -27,66 +32,98 @@ class Robot(process.Process):
             self._servos[args[0]] = _Servo(self, *args[0:])
 
     def direct_augment(self, servo, angle):
+        '''Asks nicely to move servo by angle, with no delay
+
+        logs:
+        logs.core['robot']['movement']
+            logs when servo is moving, unless it moves by 0.'''
         self.do_action('self._servos[%s].direct_augment(%.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == 0:
             self.log('%s direct_augment by %.3f' % (servo, angle))
 
     def indirect_augment(self, servo, angle):
+        '''Asks nicely to move servo by angle, with a time-dilution, slowing,
+based on servo.speed
+
+        logs:
+        logs.core['robot']['movement']
+            logs when servo is moving, unless it moves by 0.'''
         self.do_action('self._servos[%s].indirect_augment(.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == 0:
             self.log('%s indirect_augment by %.3f' % (servo, angle))
 
     def direct_move(self, servo, angle):
+        '''Asks nicely to move servo to angle, with no delay
+
+        logs:
+        logs.core['robot']['movement']
+            logs when servo is moving, unless it moves by 0.'''
         self.do_action('self._servos[%s].direct_move(%.3f)' % 
                         (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
             self.log('%s direct_move to %.3f' % (servo, angle))
 
     def indirect_move(self, servo, angle):
+        '''Asks nicely to move servo to angle, with a time-dilution, slowing,
+based on servo.speed
+
+        logs:
+        logs.core['robot']['movement']
+            logs when servo is moving, unless it moves by 0.'''
         self.do_action('self._servos[%s].indirect_move(%.3f)' % 
                           (repr(servo), angle))
         if logs.core['robot']['movement'] and not angle == self._servos[servo].read():
             self.log('%s indirect_move to %.3f' % (servo, angle))
 
     def sens_r(self, increment):
+        '''Changes the sensitivity of the robot, by a factor of increment'''
         print (increment)
-        self.do_action('self.sens *= %.6f' % increment)
         if self.sens == 0.0: # lower bound
             self.do_action('self.sens == 0.001')
+        self.do_action('self.sens *= %.6f' % increment)
         print (self.sens)
 
     def sens_r_up(self):
+        '''Doubles sensitivity of robot'''
         self.sens_r(2)
 
     def sens_r_down(self):
+        '''Halves sensitivity of robot'''
         self.sens_r(.5)
 
     def sens_s(self, name, increment):
-        self.do_action('self._servos["%s"].sens *= %.6f' % (name, increment))
+        '''Changes the sensitivity of the servo named name, by a factor of increment'''
         if self.sens == 0.0:
-            self.do_action('self.servos["%s"].sens = .00001' % name)
+            self.do_action('self.servos["%s"].sens = .001' % name)
+            # If it gets stuck at zero, it isn't movable
+            # thats bad.
+        self.do_action('self._servos["%s"].sens *= %.6f' % (name, increment))
+        # TODO: Is this sensitivity deprecated in favor of Nick's exponent system?
 
     def sens_s_up(self, name):
+        '''Doubles the sensitivity of the servo named name'''
         self.sens_s(2, name)
 
     def sens_s_down(self, name):
+        '''Halves the sensitivity of the servo named name'''
         self.sens_s(.5, name)
 
     # TODO: Properties?
     def get_sensitivity(self, name):
+        '''Gets the total sensitivity of the servo named name,
+(after having added in already the sensitivity of the robot'''
         return self._servos[name].sens * self.sens
 
     def get_sensitivity_exponent(self, name):
+        '''Gets the exponenent of sensitivity'''
         return self._servos[name].sens_exp + self.sens_exp
 
     def write_micros(self, servo, micros):
+        '''This is kind of funky'''
         self.do_action('self._servos[%s].write_micros(%d)' % 
                           (repr(servo), micros))
-
-    def _do_action(self, action):
-        process.Process._do_action(self, action)
 
     def _quit(self):
         print ('robot quitting')
@@ -114,6 +151,7 @@ class _Servo (object):
         self.direct_move(start_angle)
 
     def direct_move(self, angle):  # TODO property for _angle?
+        '''Moves to angle, without speed adjustment'''
         if logs.core['servo']['movement']:
             self.robot.log('servo {:12}, ext ang={:3.2f}'.format(self.name, angle))
         angle = util.clamp(angle, self.range[0], self.range[1])
